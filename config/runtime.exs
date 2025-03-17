@@ -1,5 +1,5 @@
 import Config
 
-config :etherium_api,
+config :ethereum_api,
   url:
-    System.get_env("ETHERIUM_API_URL") || throw("Missing ETHERIUM_API_URL environment variable")
+    System.get_env("ETHEREUM_API_URL") || throw("Missing ETHEREUM_API_URL environment variable")

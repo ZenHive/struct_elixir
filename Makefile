@@ -4,7 +4,7 @@ run: build
 
 .PHONY: watch
 watch:
-	cargo watch -C . -s "make test && mix dialyzer --format dialyxir && make format"
+	(source .env && cargo watch -C . -s "make test && mix dialyzer --format dialyxir && make format")
 
 .PHONY: test
 test: build

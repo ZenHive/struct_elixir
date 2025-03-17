@@ -10,8 +10,8 @@ defmodule JsonRpc.Request do
   defguard is_method(method) when is_binary(method)
   defguard is_params(params) when is_map(params) or is_list(params)
 
-  @spec new_with_params(method :: method(), params :: params(), id :: RequestId.t()) :: t()
-  def new_with_params(method, params, id)
+  @spec new_call_with_params(method :: method(), params :: params(), id :: RequestId.t()) :: t()
+  def new_call_with_params(method, params, id)
       when is_method(method) and is_params(params) and is_id(id) do
     %{
       :jsonrpc => :"2.0",
@@ -21,8 +21,8 @@ defmodule JsonRpc.Request do
     }
   end
 
-  @spec new_without_params(method :: method(), id :: RequestId.t()) :: t()
-  def new_without_params(method, id) when is_method(method) and is_id(id) do
+  @spec new_call_without_params(method :: method(), id :: RequestId.t()) :: t()
+  def new_call_without_params(method, id) when is_method(method) and is_id(id) do
     %{
       :jsonrpc => :"2.0",
       :method => method,
@@ -30,21 +30,21 @@ defmodule JsonRpc.Request do
     }
   end
 
-  @spec new_notification_without_params(method :: method()) :: t()
-  def new_notification_without_params(method) when is_method(method) do
-    %{
-      :jsonrpc => :"2.0",
-      :method => method
-    }
-  end
-
-  @spec new_notification_with_params(method :: method(), params :: params()) :: t()
-  def new_notification_with_params(method, params)
+  @spec new_notify_with_params(method :: method(), params :: params()) :: t()
+  def new_notify_with_params(method, params)
       when is_method(method) and is_params(params) do
     %{
       :jsonrpc => :"2.0",
       :method => method,
       :params => params
+    }
+  end
+
+  @spec new_notify_without_params(method :: method()) :: t()
+  def new_notify_without_params(method) when is_method(method) do
+    %{
+      :jsonrpc => :"2.0",
+      :method => method
     }
   end
 end

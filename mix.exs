@@ -1,9 +1,9 @@
-defmodule EtheriumApi.MixProject do
+defmodule EthereumApi.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :etherium_api,
+      app: :ethereum_api,
       version: "0.1.0",
       elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
@@ -31,7 +31,8 @@ defmodule EtheriumApi.MixProject do
     [
       {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
       {:httpoison, "~> 2.2.2"},
-      {:poison, "~> 6.0.0"}
+      {:poison, "~> 6.0.0"},
+      {:websockex, "~> 0.4.3"}
     ]
   end
 end
