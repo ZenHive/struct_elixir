@@ -1,9 +1,9 @@
-defmodule EtheriumApi.MixProject do
+defmodule EthereumApi.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :etherium_api,
+      app: :ethereum_api,
       version: "0.1.0",
       elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
@@ -29,9 +29,18 @@ defmodule EtheriumApi.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:httpoison, "~> 2.2.2"},
-      {:poison, "~> 6.0.0"}
+      {:poison, "~> 6.0.0"},
+
+      ## Web socket client
+      {:websockex, "~> 0.4.3"},
+
+      # Tests
+
+      ## Web socket server
+      {:websock_adapter, "~> 0.5.8", only: [:test]},
+      {:bandit, "~> 1.6.8", only: [:test]}
     ]
   end
 end
