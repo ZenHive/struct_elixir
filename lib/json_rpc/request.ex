@@ -2,7 +2,7 @@ defmodule JsonRpc.Request do
   alias JsonRpc.RequestId
   import RequestId, only: [is_id: 1]
 
-  @type t :: map()
+  @type t :: String.t()
   @type method :: String.t()
   @type params :: map() | list()
 
@@ -19,6 +19,7 @@ defmodule JsonRpc.Request do
       :params => params,
       :id => id
     }
+    |> Poison.encode!()
   end
 
   @spec new_call_without_params(method :: method(), id :: RequestId.t()) :: t()
@@ -28,6 +29,7 @@ defmodule JsonRpc.Request do
       :method => method,
       :id => id
     }
+    |> Poison.encode!()
   end
 
   @spec new_notify_with_params(method :: method(), params :: params()) :: t()
@@ -38,6 +40,7 @@ defmodule JsonRpc.Request do
       :method => method,
       :params => params
     }
+    |> Poison.encode!()
   end
 
   @spec new_notify_without_params(method :: method()) :: t()
@@ -46,5 +49,6 @@ defmodule JsonRpc.Request do
       :jsonrpc => :"2.0",
       :method => method
     }
+    |> Poison.encode!()
   end
 end

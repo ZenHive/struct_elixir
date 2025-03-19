@@ -29,10 +29,18 @@ defmodule EthereumApi.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:httpoison, "~> 2.2.2"},
       {:poison, "~> 6.0.0"},
-      {:websockex, "~> 0.4.3"}
+
+      ## Web socket client
+      {:websockex, "~> 0.4.3"},
+
+      # Tests
+
+      ## Web socket server
+      {:websock_adapter, "~> 0.5.8", only: [:test]},
+      {:bandit, "~> 1.6.8", only: [:test]}
     ]
   end
 end

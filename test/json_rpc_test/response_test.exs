@@ -1,5 +1,5 @@
 defmodule JsonRpc.ResponseTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   alias JsonRpc.Response
 
   describe "parse_response/1" do

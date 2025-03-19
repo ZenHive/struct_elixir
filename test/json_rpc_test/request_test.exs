@@ -1,5 +1,5 @@
 defmodule JsonRpc.RequestTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   alias JsonRpc.Request
 
   describe "new_call_with_params/3" do
@@ -14,12 +14,12 @@ defmodule JsonRpc.RequestTest do
 
       request = Request.new_call_with_params(method, params, id)
 
-      assert request == %{
+      assert request == Poison.encode!(%{
                jsonrpc: :"2.0",
                method: method,
                params: params,
                id: id
-             }
+             })
     end
   end
 
@@ -30,11 +30,11 @@ defmodule JsonRpc.RequestTest do
 
       request = Request.new_call_without_params(method, id)
 
-      assert request == %{
+      assert request == Poison.encode!(%{
                jsonrpc: :"2.0",
                method: method,
                id: id
-             }
+             })
     end
   end
 
@@ -49,11 +49,11 @@ defmodule JsonRpc.RequestTest do
 
       notification = Request.new_notify_with_params(method, params)
 
-      assert notification == %{
+      assert notification == Poison.encode!(%{
                jsonrpc: :"2.0",
                method: method,
                params: params
-             }
+             })
     end
   end
 
@@ -63,10 +63,10 @@ defmodule JsonRpc.RequestTest do
 
       notification = Request.new_notify_without_params(method)
 
-      assert notification == %{
+      assert notification == Poison.encode!(%{
                jsonrpc: :"2.0",
                method: method
-             }
+             })
     end
   end
 end
