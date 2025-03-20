@@ -7,7 +7,7 @@ defmodule JsonRpc.ResponseTest do
       raw_response = %{"jsonrpc" => "2.0", "id" => 42, "result" => "random_result"}
 
       assert Response.parse_response(raw_response) ==
-               {:ok, {:ok, %Response.Ok{id: 42, result: "random_result"}}}
+               {:ok, {42, {:ok, "random_result"}}}
     end
 
     test "parses a valid response with error" do
@@ -18,14 +18,20 @@ defmodule JsonRpc.ResponseTest do
       }
 
       assert Response.parse_response(raw_response) ==
-               {:ok,
-                {:error,
-                 %Response.Error{
-                   id: 99,
-                   code: %Response.Error.Code{code: -32600, description: :invalid_request},
-                   message: "Invalid Request",
-                   data: nil
-                 }}}
+               {
+                 :ok,
+                 {
+                   99,
+                   {
+                     :error,
+                     %Response.Error{
+                       code: %Response.Error.Code{code: -32600, description: :invalid_request},
+                       message: "Invalid Request",
+                       data: nil
+                     }
+                   }
+                 }
+               }
     end
 
     test "returns error for non-compliant response" do
@@ -44,8 +50,8 @@ defmodule JsonRpc.ResponseTest do
       ]
 
       expected_responses = %{
-        11 => {:ok, %Response.Ok{id: 11, result: "resultA"}},
-        22 => {:ok, %Response.Ok{id: 22, result: "resultB"}}
+        11 => {:ok, "resultA"},
+        22 => {:ok, "resultB"}
       }
 
       assert Response.parse_batch_responses(raw_responses) == {expected_responses, []}
@@ -58,7 +64,7 @@ defmodule JsonRpc.ResponseTest do
       ]
 
       expected_responses = %{
-        33 => {:ok, %Response.Ok{id: 33, result: "resultX"}}
+        33 => {:ok, "resultX"}
       }
 
       assert Response.parse_batch_responses(raw_responses) ==

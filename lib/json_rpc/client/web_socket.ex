@@ -44,7 +44,7 @@ defmodule JsonRpc.Client.WebSocket do
       {:json_rpc_error, reason} -> {:error, reason}
     after
       timeout ->
-       send(client, {:timeout_request, self()})
+        send(client, {:timeout_request, self()})
 
         # In case the response was sent as we were telling it to time it out
         receive do

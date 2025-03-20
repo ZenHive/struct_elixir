@@ -28,7 +28,8 @@ defmodule JsonRpc.Client.WebSocket.Handler do
     }
   end
 
-  @spec handle_frame(any(), State.t()) :: {:reply, :pong | {:pong | any()}, State.t()} | {:ok, State.t()}
+  @spec handle_frame(any(), State.t()) ::
+          {:reply, :pong | {:pong | any()}, State.t()} | {:ok, State.t()}
   def handle_frame(:ping, state) do
     {:reply, :pong, state}
   end
@@ -60,30 +61,29 @@ defmodule JsonRpc.Client.WebSocket.Handler do
         IO.puts("Failed to parse frame #{inspect(data)}, error: #{inspect(reason)}")
         {:ok, state}
 
-      {:ok, response} ->
-        send_response(response, state)
+      {:ok, {id, response}} ->
+        send_response(id, response, state)
     end
   end
 
-  @spec send_response(JsonRpc.Response.t(), State.t()) :: {:ok, State.t()}
-  defp send_response(response, state) do
-    id = elem(response, 1).id
-
+  @spec send_response(JsonRpc.RequestId.t(), JsonRpc.Response.t(), State.t()) ::
+          {:ok, State.t()}
+  defp send_response(id, response, state) do
     case Map.fetch(state.id_to_pid, id) do
       :error ->
         # TODO use a logger
-        IO.puts("invalid id in response #{inspect response}")
+        IO.puts("invalid id (#{id}) in response #{inspect(response)}")
         {:ok, state}
 
       {:ok, pid} ->
-        IO.puts("Sending response to pid: #{inspect pid}")
+        IO.puts("Sending response with id #{id} to pid: #{inspect(pid)}")
         send(pid, {:json_rpc_frame, response})
 
         {
           :ok,
           %State{
-            state |
-            id_to_pid: Map.delete(state.id_to_pid, id)
+            state
+            | id_to_pid: Map.delete(state.id_to_pid, id)
           }
         }
     end
@@ -135,8 +135,8 @@ defmodule JsonRpc.Client.WebSocket.Handler do
     {
       :ok,
       %State{
-        state |
-        id_to_pid: Map.filter(state.id_to_pid, fn {_id, current_pid} -> current_pid != pid end)
+        state
+        | id_to_pid: Map.filter(state.id_to_pid, fn {_id, current_pid} -> current_pid != pid end)
       }
     }
   end

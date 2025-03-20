@@ -57,6 +57,7 @@ defmodule DummyServer.WebSock do
       jsonrpc: "2.0",
       id: id
     }
+
     response =
       case method do
         "error" <> _ ->
@@ -69,6 +70,7 @@ defmodule DummyServer.WebSock do
         _ ->
           Map.put(response, :result, request)
       end
+
     response = Poison.encode!(response)
 
     {:push, {:text, response}, state}

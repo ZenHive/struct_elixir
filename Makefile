@@ -10,6 +10,15 @@ watch:
 watch_test:
 	cargo watch -C . -s "make test"
 
+.PHONY: watch_dialyzer
+watch_dialyzer:
+	cargo watch -C . -s "make dialyzer"
+
+
+.PHONY: dialyzer
+dialyzer: build
+	mix dialyzer --format dialyxir
+
 .PHONY: test
 test: build
 	(source .env && mix test)

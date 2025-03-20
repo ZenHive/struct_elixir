@@ -1,25 +1,20 @@
 defmodule JsonRpc.Response.Error do
-  alias JsonRpc.RequestId
-  import RequestId, only: [is_id: 1]
-
-  @enforce_keys [:id, :code, :message, :data]
+  @enforce_keys [:code, :message, :data]
   defstruct [
-    :id,
     :code,
     :message,
     :data
   ]
 
   @type t :: %__MODULE__{
-          id: RequestId.t(),
           code: __MODULE__.Code.t(),
           message: String.t(),
           data: any()
         }
 
-  @spec new(id :: RequestId.t(), code :: integer(), message :: String.t(), data :: any()) :: t()
-  def new(id, code, message, data) when is_id(id) and is_integer(code) and is_binary(message) do
-    %__MODULE__{id: id, code: __MODULE__.Code.new(code), message: message, data: data}
+  @spec new(code :: integer(), message :: String.t(), data :: any()) :: t()
+  def new(code, message, data) when is_integer(code) and is_binary(message) do
+    %__MODULE__{code: __MODULE__.Code.new(code), message: message, data: data}
   end
 end
 

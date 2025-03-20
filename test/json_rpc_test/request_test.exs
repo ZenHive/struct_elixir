@@ -14,12 +14,13 @@ defmodule JsonRpc.RequestTest do
 
       request = Request.new_call_with_params(method, params, id)
 
-      assert request == Poison.encode!(%{
-               jsonrpc: :"2.0",
-               method: method,
-               params: params,
-               id: id
-             })
+      assert request ==
+               Poison.encode!(%{
+                 jsonrpc: :"2.0",
+                 method: method,
+                 params: params,
+                 id: id
+               })
     end
   end
 
@@ -30,11 +31,12 @@ defmodule JsonRpc.RequestTest do
 
       request = Request.new_call_without_params(method, id)
 
-      assert request == Poison.encode!(%{
-               jsonrpc: :"2.0",
-               method: method,
-               id: id
-             })
+      assert request ==
+               Poison.encode!(%{
+                 jsonrpc: :"2.0",
+                 method: method,
+                 id: id
+               })
     end
   end
 
@@ -49,11 +51,12 @@ defmodule JsonRpc.RequestTest do
 
       notification = Request.new_notify_with_params(method, params)
 
-      assert notification == Poison.encode!(%{
-               jsonrpc: :"2.0",
-               method: method,
-               params: params
-             })
+      assert notification ==
+               Poison.encode!(%{
+                 jsonrpc: :"2.0",
+                 method: method,
+                 params: params
+               })
     end
   end
 
@@ -63,10 +66,11 @@ defmodule JsonRpc.RequestTest do
 
       notification = Request.new_notify_without_params(method)
 
-      assert notification == Poison.encode!(%{
-               jsonrpc: :"2.0",
-               method: method
-             })
+      assert notification ==
+               Poison.encode!(%{
+                 jsonrpc: :"2.0",
+                 method: method
+               })
     end
   end
 end

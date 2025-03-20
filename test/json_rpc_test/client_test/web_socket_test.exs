@@ -28,15 +28,15 @@ defmodule JsonRpc.Client.WebSocketTest do
     params = get_random_params()
 
     assert {:ok, {:ok, response}} = WebSocket.call_with_params(__MODULE__, method, params)
-    assert response.result["method"] == method
-    assert response.result["params"] == params
+    assert response["method"] == method
+    assert response["params"] == params
   end
 
   test "call_without_params/2 success" do
     method = "call_without_params" <> Integer.to_string(:rand.uniform(1000))
 
     assert {:ok, {:ok, response}} = WebSocket.call_without_params(__MODULE__, method)
-    assert response.result["method"] == method
+    assert response["method"] == method
   end
 
   test "call_with_params/3 error" do

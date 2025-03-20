@@ -6,7 +6,6 @@ defmodule Result do
 
   @type t(ok, err) :: {:ok, ok} | {:error, err}
 
-
   @doc """
   Returns true if the result is ok
 
@@ -90,7 +89,7 @@ defmodule Result do
   @spec map_or(t(ok, err), new_ok, (ok -> new_ok)) :: new_ok
   def map_or({:ok, value}, _default, f), do: f.(value)
   def map_or(_result, default, _f), do: default
-  
+
   @doc """
   Maps a Result.t(ok, err) to new_ok() by applying fallback function default to a contained Err value, or function f to a contained Ok value.
 
@@ -140,8 +139,9 @@ defmodule Result do
     f.(value)
     result
   end
+
   def inspect(result, _f), do: result
-  
+
   @doc """
   Calls a function with the contained value if Err.
 
@@ -165,6 +165,7 @@ defmodule Result do
     f.(value)
     result
   end
+
   def inspect_err(result, _f), do: result
 
   @doc """
@@ -178,7 +179,7 @@ defmodule Result do
   """
   @spec expect!(t(ok, err), String.t()) :: ok
   def expect!({:ok, value}, _msg), do: value
-  def expect!(_result, msg), do: raise msg
+  def expect!(_result, msg), do: raise(msg)
 
   @doc """
   Returns the contained Ok value or raises an error
@@ -191,7 +192,7 @@ defmodule Result do
   """
   @spec unwrap!(t(ok, err)) :: ok
   def unwrap!({:ok, value}), do: value
-  def unwrap!(result), do: raise "Result.unwrap!() called with result #{inspect result}"
+  def unwrap!(result), do: raise("Result.unwrap!() called with result #{inspect(result)}")
 
   @doc """
   Returns the contained Err value or raise msg
@@ -204,7 +205,7 @@ defmodule Result do
   """
   @spec expect_err!(t(ok, err), String.t()) :: err
   def expect_err!({:error, value}, _msg), do: value
-  def expect_err!(_result, msg), do: raise msg
+  def expect_err!(_result, msg), do: raise(msg)
 
   @doc """
   Returns the contained Err value or raises an error
@@ -217,7 +218,7 @@ defmodule Result do
   """
   @spec unwrap_err!(t(ok, err)) :: err
   def unwrap_err!({:error, value}), do: value
-  def unwrap_err!(result), do: raise "Result.unwrap_err!() called with result #{inspect result}"
+  def unwrap_err!(result), do: raise("Result.unwrap_err!() called with result #{inspect(result)}")
 
   @doc """
   Returns the contained Ok value or a default

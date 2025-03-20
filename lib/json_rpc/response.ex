@@ -7,10 +7,10 @@ defmodule JsonRpc.Response do
   @type non_compliant_response :: {:non_compliant_response, map()}
 
   @spec parse_response(raw_response :: map()) ::
-          {:ok, t()} | {:error, non_compliant_response()}
+          {:ok, {RequestId.t(), t()}} | {:error, non_compliant_response()}
 
   def parse_response(%{"jsonrpc" => "2.0", "id" => id, "result" => result}) when is_id(id) do
-    {:ok, {:ok, __MODULE__.Ok.new(result, id)}}
+    {:ok, {id, {:ok, __MODULE__.Ok.new(result)}}}
   end
 
   def parse_response(%{
@@ -23,9 +23,9 @@ defmodule JsonRpc.Response do
           } = raw_error
       })
       when RequestId.is_id(id) and is_integer(code) and is_binary(message) do
-    error = __MODULE__.Error.new(id, code, message, Map.get(raw_error, "data"))
+    error = __MODULE__.Error.new(code, message, Map.get(raw_error, "data"))
 
-    {:ok, {:error, error}}
+    {:ok, {id, {:error, error}}}
   end
 
   def parse_response(raw_response) do
@@ -39,9 +39,8 @@ defmodule JsonRpc.Response do
     Enum.reduce(raw_responses, {%{}, []}, fn raw_response,
                                              {responses, non_compliant_response_errors} ->
       case parse_response(raw_response) do
-        {:ok, {ok_or_error, response}} ->
-          {Map.put(responses, response.id, {ok_or_error, response}),
-           non_compliant_response_errors}
+        {:ok, {id, {ok_or_error, response}}} ->
+          {Map.put(responses, id, {ok_or_error, response}), non_compliant_response_errors}
 
         {:error, error} ->
           {responses, [error | non_compliant_response_errors]}
