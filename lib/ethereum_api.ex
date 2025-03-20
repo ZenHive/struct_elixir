@@ -1,11 +1,18 @@
 defmodule EthereumApi do
-  alias JsonRpc.Client.WebSocket
+  require JsonRpc.ApiCreatorHelper
 
-  @client __MODULE__.Worker
-
-  @spec eth_block_number() :: Result.t(EthereumApi.Response.EthBlockNumber.t(), any())
-  def eth_block_number() do
-    with {:ok, response} <- WebSocket.call_without_params(@client, "eth_blockNumber"),
-         do: EthereumApi.Response.EthBlockNumber.from_response(response)
-  end
+  JsonRpc.ApiCreatorHelper.create_no_arg_methods(__MODULE__.Worker, [
+    {
+      "Returns the current client version.",
+      :web3_client_version,
+      "web3_clientVersion",
+      EthereumApi.Response.Web3ClientVersion
+    },
+    {
+      "Returns the number of the most recent block.",
+      :eth_block_number,
+      "eth_blockNumber",
+      EthereumApi.Response.EthBlockNumber
+    }
+  ])
 end
