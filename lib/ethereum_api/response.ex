@@ -3,12 +3,10 @@ defmodule EthereumApi.Response do
     @type t :: String.t()
 
     def from_response(response) do
-      with {:ok, ok} <- response do
-        if String.valid?(ok) do
-          {:ok, ok}
-        else
-          {:error, "Response should be a string, found #{inspect(ok)}"}
-        end
+      if String.valid?(response) do
+        {:ok, response}
+      else
+        {:error, "Response should be a string, found #{inspect(response)}"}
       end
     end
   end
@@ -18,8 +16,7 @@ defmodule EthereumApi.Response do
 
     @spec from_response(JsonRpc.Response.t()) :: Result.t(t(), String.t())
     def from_response(response) do
-      with {:ok, ok} <- response,
-           do: EthereumApi.Types.Block.deserialize(ok)
+      EthereumApi.Types.Block.deserialize(response)
     end
   end
 end

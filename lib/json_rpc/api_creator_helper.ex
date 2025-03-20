@@ -13,8 +13,10 @@ defmodule JsonRpc.ApiCreatorHelper do
                  JsonRpc.Client.WebSocket.call_without_params(
                    unquote(client),
                    unquote(rpc_method)
-                 ),
-               do: unquote(expanded_response_module).from_response(response)
+                 ) do
+            with {:ok, result} <- response,
+                 do: unquote(expanded_response_module).from_response(result)
+          end
         end
       end
     end)
