@@ -30,7 +30,9 @@ defmodule EthereumApi.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:ex_doc, "~> 0.37.3", only: :dev, runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
+
       {:httpoison, "~> 2.2.2"},
       {:poison, "~> 6.0.0"},
 
