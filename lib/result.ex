@@ -132,7 +132,7 @@ defmodule Result do
       iex> Result.inspect({:error, 42}, &(IO.inspect(&1)))
       {:error, 42}
       iex> capture_io(fn -> Result.inspect({:error, 42}, &(IO.inspect(&1))) end)
-  ""
+      ""
   """
   @spec inspect(t(ok, err), (ok -> any)) :: t(ok, err)
   def inspect({:ok, value} = result, f) do

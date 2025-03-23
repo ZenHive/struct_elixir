@@ -43,7 +43,8 @@ defmodule EthereumApi do
         doc: """
           Returns the current Ethereum protocol version.
 
-          Note that this method is not available in Geth (see https://github.com/ethereum/go-ethereum/pull/22064#issuecomment-788682924).
+          Note that this method is not available in Geth
+          (see https://github.com/ethereum/go-ethereum/pull/22064#issuecomment-788682924).
         """,
         response_type: {:type_alias, String.t()},
         response_parser: &Types.Str.deserialize/1
