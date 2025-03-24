@@ -68,6 +68,16 @@ defmodule EthereumApi do
         response_parser: &EthereumApi.Types.Hexadecimal.deserialize/1
       },
       %{
+        method: "eth_mining",
+        doc: """
+          Returns true if client is actively mining new blocks.
+          This can only return true for proof-of-work networks and may not be available in some
+          clients since The Merge.
+        """,
+        response_type: {:type_alias, Types.Bool.t()},
+        response_parser: &Types.Bool.deserialize/1
+      },
+      %{
         method: "eth_blockNumber",
         doc: "Returns the number of the most recent block.",
         response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
