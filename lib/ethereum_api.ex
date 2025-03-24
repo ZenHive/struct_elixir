@@ -103,9 +103,8 @@ defmodule EthereumApi do
         response_type: {:type_alias, [EthereumApi.Types.Data.t()]},
         response_parser: fn
           list when is_list(list) ->
-            list
-            |> Enum.reduce_while({:ok, []}, fn elem, acc ->
-              result =
+            result =
+              Enum.reduce_while(list, {:ok, []}, fn elem, acc ->
                 case EthereumApi.Types.Data.deserialize(elem) do
                   {:ok, data} ->
                     {:cont, {:ok, [data | elem(acc, 1)]}}
@@ -113,10 +112,10 @@ defmodule EthereumApi do
                   {:error, reason} ->
                     {:halt, {:error, "Invalid data in list: #{inspect(reason)}"}}
                 end
+              end)
 
-              with {:ok, result} <- result,
-                   do: {:ok, Enum.reverse(result)}
-            end)
+            with {:ok, result} <- result,
+                 do: {:ok, Enum.reverse(result)}
 
           response ->
             {:error,
