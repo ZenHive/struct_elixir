@@ -202,12 +202,26 @@ defmodule EthereumApi do
         ],
         args_checker!: fn address, block_number_or_tag ->
           EthereumApi.Types.Data20.is_data!(address)
+
           if not (EthereumApi.Types.Quantity.is_quantity?(block_number_or_tag) or
-              EthereumApi.Types.Tag.is_tag?(block_number_or_tag)) do
+                    EthereumApi.Types.Tag.is_tag?(block_number_or_tag)) do
             raise ArgumentError,
-            "Expected a block number or a tag, found #{inspect(block_number_or_tag)}"
+                  "Expected a block number or a tag, found #{inspect(block_number_or_tag)}"
           end
         end,
+        response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
+        response_parser: &EthereumApi.Types.Quantity.deserialize/1
+      },
+      %{
+        method: "eth_getBlockTransactionCountByHash",
+        doc: """
+          Returns the number of transactions in a block from a block matching the given block hash.
+
+          # Parameters
+          - block_hash: The block hash
+        """,
+        args: [{block_hash, EthereumApi.Types.Data32.t()}],
+        args_checker!: &EthereumApi.Types.Data32.is_data!/1,
         response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
         response_parser: &EthereumApi.Types.Quantity.deserialize/1
       }
