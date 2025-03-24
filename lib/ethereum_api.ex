@@ -78,6 +78,16 @@ defmodule EthereumApi do
         response_parser: &Types.Bool.deserialize/1
       },
       %{
+        method: "eth_hashrate",
+        doc: """
+          Returns the number of hashes per second that the node is mining with.
+          This can only return true for proof-of-work networks and may not be available in some
+          clients since The Merge.
+        """,
+        response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
+        response_parser: &EthereumApi.Types.Quantity.deserialize/1
+      },
+      %{
         method: "eth_blockNumber",
         doc: "Returns the number of the most recent block.",
         response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
