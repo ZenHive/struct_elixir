@@ -271,6 +271,33 @@ defmodule EthereumApi do
         end,
         response_type: {:type_alias, EthereumApi.Types.Data.t()},
         response_parser: &EthereumApi.Types.Data.deserialize/1
+      },
+      %{
+        method: "eth_sign",
+        doc: """
+          The sign method calculates an Ethereum specific signature with:
+          sign(keccak256("\x19Ethereum Signed Message:\n" + len(message) + message))).
+
+          By adding a prefix to the message makes the calculated signature recognizable as an
+          Ethereum specific signature. This prevents misuse where a malicious dapp can sign
+          arbitrary data (e.g. transaction) and use the signature to impersonate the victim.
+
+          Note: the address to sign with must be unlocked.
+
+          # Parameters
+          - address: The address to sign with
+          - data: The data to sign
+        """,
+        args: [
+          {address, EthereumApi.Types.Data20.t()},
+          {data, EthereumApi.Types.Data.t()}
+        ],
+        args_checker!: fn address, data ->
+          EthereumApi.Types.Data20.is_data!(address)
+          EthereumApi.Types.Data.is_data!(data)
+        end,
+        response_type: {:type_alias, EthereumApi.Types.Data.t()},
+        response_parser: &EthereumApi.Types.Data.deserialize/1
       }
     ]
   }
