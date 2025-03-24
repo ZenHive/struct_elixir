@@ -1,4 +1,6 @@
 defmodule EthereumApi.Types do
+  require EthereumApi.Types.Helper
+
   defmodule Wei do
     @type t :: String.t()
 
@@ -34,34 +36,8 @@ defmodule EthereumApi.Types do
     end
   end
 
-  defmodule Data do
-    @type t :: String.t()
-
-    def deserialize(value) do
-      with {:ok, value} <- EthereumApi.Types.Hexadecimal.deserialize(value) do
-        if String.length(value) == 42 do
-          {:ok, value}
-        else
-          {:error, "Invalid data len: #{inspect(value)}"}
-        end
-      end
-    end
-
-    def is_data?(value) do
-      case deserialize(value) do
-        {:ok, _} -> true
-        {:error, _} -> false
-      end
-    end
-
-    def is_data!(value) do
-      if is_data?(value) do
-        :ok
-      else
-        raise ArgumentError, "Expected a data, found #{inspect(value)}"
-      end
-    end
-  end
+  EthereumApi.Types.Helper.def_data_module(20)
+  EthereumApi.Types.Helper.def_data_module(32)
 
   defmodule Syncing do
     @enforce_keys [:starting_block, :current_block, :highest_block, :additional_data]

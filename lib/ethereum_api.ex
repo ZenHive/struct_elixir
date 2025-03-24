@@ -101,12 +101,12 @@ defmodule EthereumApi do
       %{
         method: "eth_accounts",
         doc: "Returns a list of addresses owned by client.",
-        response_type: {:type_alias, [EthereumApi.Types.Data.t()]},
+        response_type: {:type_alias, [EthereumApi.Types.Data20.t()]},
         response_parser: fn
           list when is_list(list) ->
             result =
               Enum.reduce_while(list, {:ok, []}, fn elem, acc ->
-                case EthereumApi.Types.Data.deserialize(elem) do
+                case EthereumApi.Types.Data20.deserialize(elem) do
                   {:ok, data} ->
                     {:cont, {:ok, [data | elem(acc, 1)]}}
 
@@ -120,7 +120,7 @@ defmodule EthereumApi do
 
           response ->
             {:error,
-             "Invalid response, expect list(EthereumApi.Types.Data.t()) found #{inspect(response)}"}
+             "Invalid response, expect list(EthereumApi.Types.Data20.t()) found #{inspect(response)}"}
         end
       },
       %{
@@ -136,24 +136,55 @@ defmodule EthereumApi do
 
           # Parameters
           - address: The address to check for balance
-          - block_number: Integer block number, or the string "latest", "earliest", "pending",
+          - block_number_or_tag: Integer block number, or the string "latest", "earliest", "pending",
             "safe", or "finalized"
         """,
         args: [
-          {address, EthereumApi.Types.Data.t()},
-          {block_number, EthereumApi.Types.Quantity.t() | String.t()}
+          {address, EthereumApi.Types.Data20.t()},
+          {block_number_or_tag, EthereumApi.Types.Quantity.t() | EthereumApi.Types.Tag.t()}
         ],
-        args_checker!: fn address, block_number ->
-          EthereumApi.Types.Data.is_data!(address)
+        args_checker!: fn address, block_number_or_tag ->
+          EthereumApi.Types.Data20.is_data!(address)
 
-          if not (EthereumApi.Types.Quantity.is_quantity?(block_number) or
-               EthereumApi.Types.Tag.is_tag?(block_number)) do
+          if not (EthereumApi.Types.Quantity.is_quantity?(block_number_or_tag) or
+                    EthereumApi.Types.Tag.is_tag?(block_number_or_tag)) do
             raise ArgumentError,
-                  "Expected a block number or a tag, found #{inspect(block_number)}"
+                  "Expected a block number or a tag, found #{inspect(block_number_or_tag)}"
           end
         end,
         response_type: {:type_alias, EthereumApi.Types.Wei.t()},
         response_parser: &EthereumApi.Types.Wei.deserialize/1
+      },
+      %{
+        method: "eth_getStorageAt",
+        doc: """
+          Returns the value from a storage position at a given address.
+          For more details, see:
+          https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_getstorageat
+
+          # Parameters
+          - address: The address of the storage
+          - position: Integer of the position in the storage
+          - block_number_or_tag: Integer block number, or the string "latest", "earliest", "pending",
+            "safe", or "finalized"
+        """,
+        args: [
+          {address, EthereumApi.Types.Data20.t()},
+          {position, EthereumApi.Types.Quantity.t()},
+          {block_number_or_tag, EthereumApi.Types.Quantity.t() | EthereumApi.Types.Tag.t()}
+        ],
+        args_checker!: fn address, position, block_number_or_tag ->
+          EthereumApi.Types.Data20.is_data!(address)
+          EthereumApi.Types.Quantity.is_quantity!(position)
+
+          if not (EthereumApi.Types.Quantity.is_quantity?(block_number_or_tag) or
+                    EthereumApi.Types.Tag.is_tag?(block_number_or_tag)) do
+            raise ArgumentError,
+                  "Expected a block number or a tag, found #{inspect(block_number_or_tag)}"
+          end
+        end,
+        response_type: {:type_alias, EthereumApi.Types.Data32.t()},
+        response_parser: &EthereumApi.Types.Data32.deserialize/1
       }
     ]
   }
