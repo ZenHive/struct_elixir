@@ -22,10 +22,10 @@ defmodule JsonStructTest do
     human = %Human{name: 42, age: 30}
 
     assert Human.serialize(human) ==
-             {:error, ":name(Types.Str) has incorrect type: 42(\"Invalid string\")"}
+             {:error, ":name(Types.Str) has incorrect type: 42(\"Invalid string (42)\")"}
 
     assert Poison.encode!(human) |> Human.deserialize() ==
-             {:error, ":name(Types.Str) has incorrect type: 42(\"Invalid string\")"}
+             {:error, ":name(Types.Str) has incorrect type: 42(\"Invalid string (42)\")"}
   end
 
   test "Invalid value" do
