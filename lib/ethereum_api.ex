@@ -236,6 +236,20 @@ defmodule EthereumApi do
         args_checker!: &EthereumApi.Types.Data32.is_data!/1,
         response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
         response_parser: &EthereumApi.Types.Quantity.deserialize/1
+      },
+      %{
+        method: "eth_getUncleCountByBlockNumber",
+        doc: """
+          Returns the number of uncles in a block from a block matching the given block number.
+
+          # Parameters
+          - block_number_or_tag: Integer block number, or one of the following strings
+            #{inspect(EthereumApi.Types.Tag.tags())}
+        """,
+        args: [{block_number_or_tag, EthereumApi.Types.Quantity.t() | EthereumApi.Types.Tag.t()}],
+        args_checker!: &is_quantity_or_tag!/1,
+        response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
+        response_parser: &EthereumApi.Types.Quantity.deserialize/1
       }
     ]
   }
