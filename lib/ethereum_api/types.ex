@@ -1,4 +1,10 @@
 defmodule EthereumApi.Types do
+  defmodule Wei do
+    @type t :: String.t()
+
+    def deserialize(value), do: EthereumApi.Types.Quantity.deserialize(value)
+  end
+
   defmodule Syncing do
     @enforce_keys [:starting_block, :current_block, :highest_block, :additional_data]
     defstruct [:starting_block, :current_block, :highest_block, :additional_data]

@@ -88,6 +88,16 @@ defmodule EthereumApi do
         response_parser: &EthereumApi.Types.Quantity.deserialize/1
       },
       %{
+        method: "eth_gasPrice",
+        doc: """
+          Returns an estimate of the current price per gas in wei.
+          For example, the Besu client examines the last 100 blocks and returns the median gas unit
+          price by default.
+        """,
+        response_type: {:type_alias, EthereumApi.Types.Wei.t()},
+        response_parser: &EthereumApi.Types.Wei.deserialize/1
+      },
+      %{
         method: "eth_blockNumber",
         doc: "Returns the number of the most recent block.",
         response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
