@@ -10,11 +10,16 @@ defmodule EthereumApi do
       },
       %{
         method: "web3_sha3",
-        doc: "Returns Keccak-256 (not the standardized SHA3-256) of the given data.",
-        args: [{data, String.t()}],
+        doc: """
+          Returns Keccak-256 (not the standardized SHA3-256) of the given data.
+
+          # Parameters
+          - data: The data to convert into a SHA3 hash
+        """,
+        args: [{data, EthereumApi.Types.Hexadecimal.t()}],
         args_checker!: fn data ->
           if !EthereumApi.Types.Hexadecimal.is_hexadecimal?(data) do
-            throw("Expected a hexadecimal string, found #{inspect(data)}")
+            raise ArgumentError, "Expected a hexadecimal string, found #{inspect(data)}"
           end
         end,
         response_type: {:type_alias, String.t()},
