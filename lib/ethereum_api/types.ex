@@ -41,7 +41,7 @@ defmodule EthereumApi.Types do
 
     def deserialize(value) do
       with {:error, _} <- EthereumApi.Types.Hexadecimal.deserialize(value),
-        do: {:error, "Invalid Data: #{inspect(value)}"}
+           do: {:error, "Invalid Data: #{inspect(value)}"}
     end
 
     def is_data?(value) do

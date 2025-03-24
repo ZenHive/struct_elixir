@@ -23,104 +23,140 @@ defmodule JsonRpc.ApiCreator do
   end
 
   defmacro __using__({client, methods}) do
-    ast =
-      methods
-      |> List.wrap()
-      # |> IO.inspect()
-      |> Enum.map(fn {:%{}, _, opts} ->
-        %{
-          method: method,
-          doc: doc,
-          response_type: response_type,
-          response_parser: response_parser
-        } = opts = Enum.into(opts, %{})
+    module = __CALLER__.module
 
-        args =
-          Map.get(opts, :args) ||
-            []
-            |> List.wrap()
-            |> IO.inspect()
+    methods
+    |> List.wrap()
+    |> Enum.map(&generate_ast(&1, client, module))
+    |> print_debug_code(module)
+  end
 
-        args_spec =
-          args
-          |> Enum.map(fn {arg, type} ->
-            quote do: unquote(arg) :: unquote(type)
-          end)
+  defp generate_ast({:%{}, _, opts}, client, module) do
+    %{
+      method: method,
+      doc: doc,
+      response_type: response_type,
+      response_parser: response_parser
+    } = opts = Enum.into(opts, %{})
 
-        args = args |> Enum.map(fn {arg, _type} -> arg end)
+    args = Map.get(opts, :args, []) |> List.wrap()
+    args_spec = Enum.map(args, fn {arg, type} -> quote do: unquote(arg) :: unquote(type) end)
+    args = Enum.map(args, fn {arg, _type} -> arg end)
+    args_checker! = get_args_checker!(args, opts, method)
+    args_transformer = Map.get(opts, :args_transformer, nil)
 
-        args_checker! =
-          case args do
-            [] ->
-              :nop
+    func_name = method |> to_snake_case() |> String.to_atom()
+    func_path = Module.concat(module, func_name)
+    response_module = Module.concat(module, to_camel_case(method))
 
-            [_ | _] ->
-              Map.get(opts, :args_checker!) ||
-                throw("Missing key :args_checker! for method #{method}")
-          end
+    quote do
+      defmodule unquote(response_module) do
+        @moduledoc "Defines the type returned by #{unquote(func_path)}()"
+        unquote(generate_response_type_ast(response_type, method))
+      end
 
-        func_name = method |> to_snake_case() |> String.to_atom()
-        func_path = Module.concat(__CALLER__.module, func_name)
-        response_module = Module.concat(__CALLER__.module, to_camel_case(method))
+      @doc unquote(doc)
+      @spec unquote(func_name)(unquote_splicing(args_spec)) ::
+              Result.t(unquote(response_module).t(), any())
+      def unquote(func_name)(unquote_splicing(args)) do
+        unquote(
+          generate_function_body_ast(
+            args,
+            client,
+            method,
+            response_parser,
+            args_checker!,
+            args_transformer
+          )
+        )
+      end
+    end
+  end
 
-        quote do
-          defmodule unquote(response_module) do
-            @moduledoc "Defines the type returned by #{unquote(func_path)}()"
+  defp get_args_checker!(args, opts, method) do
+    case args do
+      [] ->
+        :nop
 
-            unquote(
-              case response_type do
-                {:type_alias, t} ->
-                  quote do: @type(t :: unquote(t))
+      [_ | _] ->
+        Map.get(opts, :args_checker!) || throw("Missing key :args_checker! for method #{method}")
+    end
+  end
 
-                {:json_struct, t} ->
-                  quote do: use(JsonStruct, unquote(t))
+  defp generate_response_type_ast({:type_alias, t}, _method),
+    do: quote(do: @type(t :: unquote(t)))
 
-                {:struct, t} ->
-                  # TODO add typespec for struct
-                  quote do: defstruct(unquote(t))
+  defp generate_response_type_ast({:json_struct, t}, _method),
+    do: quote(do: use(JsonStruct, unquote(t)))
 
-                _ ->
-                  throw("Invalid response_type for method #{method}: #{inspect(response_type)}")
-              end
-            )
-          end
+  defp generate_response_type_ast({:struct, t}, _method), do: quote(do: defstruct(unquote(t)))
 
-          @doc unquote(doc)
-          @spec unquote(func_name)(unquote_splicing(args_spec)) ::
-                  Result.t(unquote(response_module).t(), any())
-          def unquote(func_name)(unquote_splicing(args)) do
-            unquote(
-              if Enum.empty?(args) do
-                quote do
-                  with {:ok, response} <-
-                         JsonRpc.Client.WebSocket.call_without_params(
-                           unquote(client),
-                           unquote(method)
-                         ),
-                       {:ok, result} <- response,
-                       do: unquote(response_parser).(result)
-                end
-              else
-                quote do
-                  unquote(args_checker!).(unquote_splicing(args))
+  defp generate_response_type_ast(_invalid, method),
+    do: throw("Invalid response_type for method #{method}")
 
-                  with {:ok, response} <-
-                         JsonRpc.Client.WebSocket.call_with_params(
-                           unquote(client),
-                           unquote(method),
-                           unquote(args)
-                         ),
-                       {:ok, result} <- response,
-                       do: unquote(response_parser).(result)
-                end
-              end
-            )
-          end
-        end
-      end)
+  defp generate_function_body_ast(
+         [],
+         client,
+         method,
+         response_parser,
+         _args_checker!,
+         _args_transformer
+       ) do
+    quote do
+      with {:ok, response} <-
+             JsonRpc.Client.WebSocket.call_without_params(unquote(client), unquote(method)),
+           {:ok, result} <- response,
+           do: unquote(response_parser).(result)
+    end
+  end
 
+  defp generate_function_body_ast(
+         args,
+         client,
+         method,
+         response_parser,
+         args_checker!,
+         nil
+       ) do
+    quote do
+      unquote(args_checker!).(unquote_splicing(args))
+
+      with {:ok, response} <-
+             JsonRpc.Client.WebSocket.call_with_params(
+               unquote(client),
+               unquote(method),
+               unquote(args)
+             ),
+           {:ok, result} <- response,
+           do: unquote(response_parser).(result)
+    end
+  end
+
+  defp generate_function_body_ast(
+         args,
+         client,
+         method,
+         response_parser,
+         args_checker!,
+         args_transformer
+       ) do
+    quote do
+      unquote(args_checker!).(unquote_splicing(args))
+
+      with {:ok, response} <-
+             JsonRpc.Client.WebSocket.call_with_params(
+               unquote(client),
+               unquote(method),
+               unquote(args_transformer).(unquote_splicing(args))
+             ),
+           {:ok, result} <- response,
+           do: unquote(response_parser).(result)
+    end
+  end
+
+  defp print_debug_code(ast, module) do
     readable_code = ast |> Macro.to_string() |> Code.format_string!() |> IO.iodata_to_binary()
-    IO.puts("Generated code for module #{__CALLER__.module} #{readable_code}")
+    IO.puts("Generated code for module #{module} #{readable_code}")
     ast
   end
 end
