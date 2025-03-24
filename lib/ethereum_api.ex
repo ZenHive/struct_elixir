@@ -185,6 +185,31 @@ defmodule EthereumApi do
         end,
         response_type: {:type_alias, EthereumApi.Types.Data32.t()},
         response_parser: &EthereumApi.Types.Data32.deserialize/1
+      },
+      %{
+        method: "eth_getTransactionCount",
+        doc: """
+          Returns the number of transactions sent from an address.
+
+          # Parameters
+          - address: The address to check for transaction count
+          - block_number_or_tag: Integer block number, or the string "latest", "earliest", "pending",
+            "safe", or "finalized"
+        """,
+        args: [
+          {address, EthereumApi.Types.Data20.t()},
+          {block_number_or_tag, EthereumApi.Types.Quantity.t() | EthereumApi.Types.Tag.t()}
+        ],
+        args_checker!: fn address, block_number_or_tag ->
+          EthereumApi.Types.Data20.is_data!(address)
+          if not (EthereumApi.Types.Quantity.is_quantity?(block_number_or_tag) or
+              EthereumApi.Types.Tag.is_tag?(block_number_or_tag)) do
+            raise ArgumentError,
+            "Expected a block number or a tag, found #{inspect(block_number_or_tag)}"
+          end
+        end,
+        response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
+        response_parser: &EthereumApi.Types.Quantity.deserialize/1
       }
     ]
   }
