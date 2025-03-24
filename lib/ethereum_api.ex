@@ -62,6 +62,12 @@ defmodule EthereumApi do
         end
       },
       %{
+        method: "eth_chainId",
+        doc: "Returns the chain ID used for signing replay-protected transactions.",
+        response_type: {:type_alias, EthereumApi.Types.Hexadecimal.t()},
+        response_parser: &EthereumApi.Types.Hexadecimal.deserialize/1
+      },
+      %{
         method: "eth_blockNumber",
         doc: "Returns the number of the most recent block.",
         response_type: {:type_alias, EthereumApi.Types.Quantity.t()},

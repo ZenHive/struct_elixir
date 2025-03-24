@@ -43,6 +43,8 @@ defmodule EthereumApi.Types do
   end
 
   defmodule Hexadecimal do
+    @type t :: String.t()
+
     def is_hexadecimal?(string) do
       String.match?(string, ~r/^0x[0-9a-fA-F]+$/)
     end
