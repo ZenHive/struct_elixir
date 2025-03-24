@@ -173,8 +173,8 @@ defmodule EthereumApi do
           EthereumApi.Types.Quantity.is_quantity!(position)
           is_quantity_or_tag!(block_number_or_tag)
         end,
-        response_type: {:type_alias, EthereumApi.Types.Data32.t()},
-        response_parser: &EthereumApi.Types.Data32.deserialize/1
+        response_type: {:type_alias, EthereumApi.Types.Data.t()},
+        response_parser: &EthereumApi.Types.Data.deserialize/1
       },
       %{
         method: "eth_getTransactionCount",
@@ -250,6 +250,27 @@ defmodule EthereumApi do
         args_checker!: &is_quantity_or_tag!/1,
         response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
         response_parser: &EthereumApi.Types.Quantity.deserialize/1
+      },
+      %{
+        method: "eth_getCode",
+        doc: """
+          Returns code at a given address.
+
+          # Parameters
+          - address: The address to check for code
+          - block_number_or_tag: Integer block number, or one of the following strings
+            #{inspect(EthereumApi.Types.Tag.tags())}
+        """,
+        args: [
+          {address, EthereumApi.Types.Data20.t()},
+          {block_number_or_tag, EthereumApi.Types.Quantity.t() | EthereumApi.Types.Tag.t()}
+        ],
+        args_checker!: fn address, block_number_or_tag ->
+          EthereumApi.Types.Data20.is_data!(address)
+          is_quantity_or_tag!(block_number_or_tag)
+        end,
+        response_type: {:type_alias, EthereumApi.Types.Data.t()},
+        response_parser: &EthereumApi.Types.Data.deserialize/1
       }
     ]
   }

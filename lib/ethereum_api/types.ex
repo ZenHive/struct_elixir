@@ -36,6 +36,30 @@ defmodule EthereumApi.Types do
     end
   end
 
+  defmodule Data do
+    @type t :: String.t()
+
+    def deserialize(value) do
+      with {:error, _} <- EthereumApi.Types.Hexadecimal.deserialize(value),
+        do: {:error, "Invalid Data: #{inspect(value)}"}
+    end
+
+    def is_data?(value) do
+      case deserialize(value) do
+        {:ok, _} -> true
+        {:error, _} -> false
+      end
+    end
+
+    def is_data!(value) do
+      if is_data?(value) do
+        :ok
+      else
+        raise ArgumentError, "Expected a Data, found #{inspect(value)}"
+      end
+    end
+  end
+
   EthereumApi.Types.Helper.def_data_module(20)
   EthereumApi.Types.Helper.def_data_module(32)
 
