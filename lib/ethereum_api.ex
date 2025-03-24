@@ -17,11 +17,7 @@ defmodule EthereumApi do
           - data: The data to convert into a SHA3 hash
         """,
         args: [{data, EthereumApi.Types.Hexadecimal.t()}],
-        args_checker!: fn data ->
-          if !EthereumApi.Types.Hexadecimal.is_hexadecimal?(data) do
-            raise ArgumentError, "Expected a hexadecimal string, found #{inspect(data)}"
-          end
-        end,
+        args_checker!: &EthereumApi.Types.Hexadecimal.is_hexadecimal!/1,
         response_type: {:type_alias, String.t()},
         response_parser: &EthereumApi.Types.Hexadecimal.deserialize/1
       },
@@ -148,25 +144,12 @@ defmodule EthereumApi do
           {block_number, EthereumApi.Types.Quantity.t() | String.t()}
         ],
         args_checker!: fn address, block_number ->
-          case EthereumApi.Types.Data.deserialize(address) do
-            {:error, reason} ->
-              raise ArgumentError, "Expected a EthereumApi.Types.Data, #{inspect(reason)}"
+          EthereumApi.Types.Data.is_data!(address)
 
-            {:ok, _} ->
-              :ok
-          end
-
-          case EthereumApi.Types.Quantity.deserialize(block_number) do
-            {:error, _} ->
-              if block_number in ["latest", "earliest", "pending", "safe", "finalized"] do
-                :ok
-              else
-                raise ArgumentError,
-                      "Expected a block number or a tag, found #{inspect(block_number)}"
-              end
-
-            {:ok, _} ->
-              :ok
+          if not (EthereumApi.Types.Quantity.is_quantity?(block_number) or
+               EthereumApi.Types.Tag.is_tag?(block_number)) do
+            raise ArgumentError,
+                  "Expected a block number or a tag, found #{inspect(block_number)}"
           end
         end,
         response_type: {:type_alias, EthereumApi.Types.Wei.t()},
