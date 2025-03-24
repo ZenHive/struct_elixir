@@ -98,6 +98,32 @@ defmodule EthereumApi do
         response_parser: &EthereumApi.Types.Wei.deserialize/1
       },
       %{
+        method: "eth_accounts",
+        doc: "Returns a list of addresses owned by client.",
+        response_type: {:type_alias, [EthereumApi.Types.Data.t()]},
+        response_parser: fn
+          list when is_list(list) ->
+            list
+            |> Enum.reduce_while({:ok, []}, fn elem, acc ->
+              result =
+                case EthereumApi.Types.Data.deserialize(elem) do
+                  {:ok, data} ->
+                    {:cont, {:ok, [data | elem(acc, 1)]}}
+
+                  {:error, reason} ->
+                    {:halt, {:error, "Invalid data in list: #{inspect(reason)}"}}
+                end
+
+              with {:ok, result} <- result,
+                   do: {:ok, Enum.reverse(result)}
+            end)
+
+          response ->
+            {:error,
+             "Invalid response, expect list(EthereumApi.Types.Data.t()) found #{inspect(response)}"}
+        end
+      },
+      %{
         method: "eth_blockNumber",
         doc: "Returns the number of the most recent block.",
         response_type: {:type_alias, EthereumApi.Types.Quantity.t()},

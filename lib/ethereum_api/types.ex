@@ -5,6 +5,20 @@ defmodule EthereumApi.Types do
     def deserialize(value), do: EthereumApi.Types.Quantity.deserialize(value)
   end
 
+  defmodule Data do
+    @type t :: String.t()
+
+    def deserialize(value) do
+      with {:ok, value} <- EthereumApi.Types.Hexadecimal.deserialize(value) do
+        if String.length(value) == 42 do
+          {:ok, value}
+        else
+          {:error, "Invalid data len: #{inspect(value)}"}
+        end
+      end
+    end
+  end
+
   defmodule Syncing do
     @enforce_keys [:starting_block, :current_block, :highest_block, :additional_data]
     defstruct [:starting_block, :current_block, :highest_block, :additional_data]
