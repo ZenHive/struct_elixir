@@ -136,8 +136,8 @@ defmodule EthereumApi do
 
           # Parameters
           - address: The address to check for balance
-          - block_number_or_tag: Integer block number, or the string "latest", "earliest", "pending",
-            "safe", or "finalized"
+          - block_number_or_tag: Integer block number, or one of the following strings
+            #{inspect(EthereumApi.Types.Tag.tags())}
         """,
         args: [
           {address, EthereumApi.Types.Data20.t()},
@@ -145,12 +145,7 @@ defmodule EthereumApi do
         ],
         args_checker!: fn address, block_number_or_tag ->
           EthereumApi.Types.Data20.is_data!(address)
-
-          if not (EthereumApi.Types.Quantity.is_quantity?(block_number_or_tag) or
-                    EthereumApi.Types.Tag.is_tag?(block_number_or_tag)) do
-            raise ArgumentError,
-                  "Expected a block number or a tag, found #{inspect(block_number_or_tag)}"
-          end
+          is_quantity_or_tag!(block_number_or_tag)
         end,
         response_type: {:type_alias, EthereumApi.Types.Wei.t()},
         response_parser: &EthereumApi.Types.Wei.deserialize/1
@@ -165,8 +160,8 @@ defmodule EthereumApi do
           # Parameters
           - address: The address of the storage
           - position: Integer of the position in the storage
-          - block_number_or_tag: Integer block number, or the string "latest", "earliest", "pending",
-            "safe", or "finalized"
+          - block_number_or_tag: Integer block number, or one of the following strings
+            #{inspect(EthereumApi.Types.Tag.tags())}
         """,
         args: [
           {address, EthereumApi.Types.Data20.t()},
@@ -176,12 +171,7 @@ defmodule EthereumApi do
         args_checker!: fn address, position, block_number_or_tag ->
           EthereumApi.Types.Data20.is_data!(address)
           EthereumApi.Types.Quantity.is_quantity!(position)
-
-          if not (EthereumApi.Types.Quantity.is_quantity?(block_number_or_tag) or
-                    EthereumApi.Types.Tag.is_tag?(block_number_or_tag)) do
-            raise ArgumentError,
-                  "Expected a block number or a tag, found #{inspect(block_number_or_tag)}"
-          end
+          is_quantity_or_tag!(block_number_or_tag)
         end,
         response_type: {:type_alias, EthereumApi.Types.Data32.t()},
         response_parser: &EthereumApi.Types.Data32.deserialize/1
@@ -193,8 +183,8 @@ defmodule EthereumApi do
 
           # Parameters
           - address: The address to check for transaction count
-          - block_number_or_tag: Integer block number, or the string "latest", "earliest", "pending",
-            "safe", or "finalized"
+          - block_number_or_tag: Integer block number, or one of the following strings
+            #{inspect(EthereumApi.Types.Tag.tags())}
         """,
         args: [
           {address, EthereumApi.Types.Data20.t()},
@@ -202,12 +192,7 @@ defmodule EthereumApi do
         ],
         args_checker!: fn address, block_number_or_tag ->
           EthereumApi.Types.Data20.is_data!(address)
-
-          if not (EthereumApi.Types.Quantity.is_quantity?(block_number_or_tag) or
-                    EthereumApi.Types.Tag.is_tag?(block_number_or_tag)) do
-            raise ArgumentError,
-                  "Expected a block number or a tag, found #{inspect(block_number_or_tag)}"
-          end
+          is_quantity_or_tag!(block_number_or_tag)
         end,
         response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
         response_parser: &EthereumApi.Types.Quantity.deserialize/1
@@ -224,7 +209,28 @@ defmodule EthereumApi do
         args_checker!: &EthereumApi.Types.Data32.is_data!/1,
         response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
         response_parser: &EthereumApi.Types.Quantity.deserialize/1
+      },
+      %{
+        method: "eth_getBlockTransactionCountByNumber",
+        doc: """
+          Returns the number of transactions in a block matching the given block number.
+
+          # Parameters
+          - block_number_or_tag: Integer block number, or one of the following strings
+            #{inspect(EthereumApi.Types.Tag.tags())}
+        """,
+        args: [{block_number_or_tag, EthereumApi.Types.Quantity.t() | EthereumApi.Types.Tag.t()}],
+        args_checker!: &is_quantity_or_tag!/1,
+        response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
+        response_parser: &EthereumApi.Types.Quantity.deserialize/1
       }
     ]
   }
+
+  defp is_quantity_or_tag!(value) do
+    if not (EthereumApi.Types.Quantity.is_quantity?(value) or
+              EthereumApi.Types.Tag.is_tag?(value)) do
+      raise ArgumentError, "Expected a block number or a tag, found #{inspect(value)}"
+    end
+  end
 end
