@@ -132,6 +132,45 @@ defmodule EthereumApi do
         doc: "Returns the number of the most recent block.",
         response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
         response_parser: &EthereumApi.Types.Quantity.deserialize/1
+      },
+      %{
+        method: "eth_getBalance",
+        doc: """
+          Returns the balance of the account of given address.
+
+          # Parameters
+          - address: The address to check for balance
+          - block_number: Integer block number, or the string "latest", "earliest", "pending",
+            "safe", or "finalized"
+        """,
+        args: [
+          {address, EthereumApi.Types.Data.t()},
+          {block_number, EthereumApi.Types.Quantity.t() | String.t()}
+        ],
+        args_checker!: fn address, block_number ->
+          case EthereumApi.Types.Data.deserialize(address) do
+            {:error, reason} ->
+              raise ArgumentError, "Expected a EthereumApi.Types.Data, #{inspect(reason)}"
+
+            {:ok, _} ->
+              :ok
+          end
+
+          case EthereumApi.Types.Quantity.deserialize(block_number) do
+            {:error, _} ->
+              if block_number in ["latest", "earliest", "pending", "safe", "finalized"] do
+                :ok
+              else
+                raise ArgumentError,
+                      "Expected a block number or a tag, found #{inspect(block_number)}"
+              end
+
+            {:ok, _} ->
+              :ok
+          end
+        end,
+        response_type: {:type_alias, EthereumApi.Types.Wei.t()},
+        response_parser: &EthereumApi.Types.Wei.deserialize/1
       }
     ]
   }
