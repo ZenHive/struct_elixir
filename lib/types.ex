@@ -8,7 +8,7 @@ defmodule Types do
     @type t :: integer()
 
     def deserialize(value) when is_integer(value), do: {:ok, value}
-    def deserialize(value), do: {:error, "Invalid integer (#{value})"}
+    def deserialize(value), do: {:error, "Invalid integer (#{inspect(value)})"}
   end
 
   defmodule Str do
@@ -18,12 +18,12 @@ defmodule Types do
       if Elixir.String.valid?(value) do
         {:ok, value}
       else
-        {:error, "Invalid string"}
+        {:error, "Invalid string (#{inspect(value)})"}
       end
     end
 
-    def deserialize(_value) do
-      {:error, "Invalid string"}
+    def deserialize(value) do
+      {:error, "Invalid string (#{inspect(value)})"}
     end
   end
 
@@ -31,13 +31,13 @@ defmodule Types do
     @type t :: boolean()
 
     def deserialize(value) when value in [true, false], do: {:ok, value}
-    def deserialize(value), do: {:error, "Invalid boolean (#{value})"}
+    def deserialize(value), do: {:error, "Invalid boolean (#{inspect(value)})"}
   end
 
   defmodule Float do
     @type t :: float()
 
     def deserialize(value) when is_float(value), do: {:ok, value}
-    def deserialize(value), do: {:error, "Invalid float (#{value})"}
+    def deserialize(value), do: {:error, "Invalid float (#{inspect(value)})"}
   end
 end
