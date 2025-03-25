@@ -402,6 +402,24 @@ defmodule EthereumApi do
         end,
         response_type: {:type_alias, EthereumApi.Types.Data32.t()},
         response_parser: &EthereumApi.Types.Data32.deserialize/1
+      },
+      %{
+        method: "eth_sendRawTransaction",
+        doc: """
+          Creates new message call transaction or a contract creation for signed transactions.
+
+          # Parameters
+          - signed_transaction_data: The signed transaction data.
+
+          # Returns
+          - Data32 - the transaction hash, or the zero hash if the transaction is not yet available.
+            Use eth_getTransactionReceipt to get the contract address, after the transaction was
+            proposed in a block, when you created a contract.
+        """,
+        args: {signed_transaction_data, EthereumApi.Types.Data.t()},
+        args_transformer!: &EthereumApi.Types.Data.deserialize!/1,
+        response_type: {:type_alias, EthereumApi.Types.Data32.t()},
+        response_parser: &EthereumApi.Types.Data32.deserialize/1
       }
     ]
   }
