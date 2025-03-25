@@ -43,17 +43,23 @@ defmodule EthereumApi.Types do
   defmodule Data do
     @type t :: String.t()
 
-    def deserialize(value) do
-      with {:error, _} <- EthereumApi.Types.Hexadecimal.deserialize(value),
-           do: {:error, "Invalid Data: #{inspect(value)}"}
-    end
-
-    def is_data?(value) do
-      case deserialize(value) do
-        {:ok, _} -> true
-        {:error, _} -> false
+    def deserialize(value) when is_binary(value) do
+      if is_data?(value) do
+        {:ok, value}
+      else
+        deserialize_error(value)
       end
     end
+
+    def deserialize(value), do: deserialize_error(value)
+
+    defp deserialize_error(value), do: {:error, "Invalid data: #{inspect(value)}"}
+
+    def is_data?(value) when is_binary(value) do
+      String.match?(value, ~r/^0x[0-9a-fA-F]*$/)
+    end
+
+    def is_data?(_), do: false
 
     @spec deserialize!(any()) :: t()
     def deserialize!(value) do
@@ -107,48 +113,29 @@ defmodule EthereumApi.Types do
   defmodule Quantity do
     @type t :: String.t()
 
-    def deserialize(value), do: EthereumApi.Types.Hexadecimal.deserialize(value)
-
-    def is_quantity?(value) do
-      case deserialize(value) do
-        {:ok, _} -> true
-        {:error, _} -> false
+    def deserialize(value) when is_binary(value) do
+      if is_quantity?(value) do
+        {:ok, value}
+      else
+        deserialize_error(value)
       end
     end
+
+    def deserialize(value), do: deserialize_error(value)
+
+    defp deserialize_error(value), do: {:error, "Invalid quantity: #{inspect(value)}"}
+
+    def is_quantity?(value) when is_binary(value) do
+      String.match?(value, ~r/^0x[0-9a-fA-F]+$/)
+    end
+
+    def is_data?(_), do: false
 
     @spec deserialize!(any()) :: t()
     def deserialize!(value) do
       case deserialize(value) do
         {:ok, value} -> value
         {:error, _} -> raise ArgumentError, "Expected a quantity, found #{inspect(value)}"
-      end
-    end
-  end
-
-  defmodule Hexadecimal do
-    @type t :: String.t()
-
-    def deserialize(value) when is_binary(value) do
-      if is_hexadecimal?(value) do
-        {:ok, value}
-      else
-        invalid_hexadecimal_error(value)
-      end
-    end
-
-    def deserialize(value), do: invalid_hexadecimal_error(value)
-
-    defp invalid_hexadecimal_error(value), do: {:error, "Invalid hexadecimal: #{inspect(value)}"}
-
-    def is_hexadecimal?(string) do
-      String.match?(string, ~r/^0x[0-9a-fA-F]+$/)
-    end
-
-    @spec deserialize!(any()) :: t()
-    def deserialize!(value) do
-      case deserialize(value) do
-        {:ok, value} -> value
-        {:error, _} -> raise ArgumentError, "Expected a hexadecimal, found #{inspect(value)}"
       end
     end
   end

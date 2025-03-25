@@ -1,7 +1,7 @@
 defmodule EthereumApi.Types.Helper do
   @moduledoc false
 
-  defmacro def_data_module(size) do
+  defmacro def_data_module(size, debug \\ false) do
     if !is_integer(size) do
       raise ArgumentError, "Expected an integer, found #{inspect(size)}"
     end
@@ -22,22 +22,28 @@ defmodule EthereumApi.Types.Helper do
         defmodule unquote(module_name) do
           @type t :: String.t()
 
-          def deserialize(value) do
-            with {:ok, value} <- EthereumApi.Types.Hexadecimal.deserialize(value) do
-              if String.length(value) == unquote(expected_string_len) do
-                {:ok, value}
-              else
-                {:error, "Invalid Data#{unquote(size)} len: #{inspect(value)}"}
-              end
+          def deserialize(value) when is_binary(value) do
+            if is_data?(value) do
+              {:ok, value}
+            else
+              deserialize_error(value)
             end
           end
 
-          def is_data?(value) do
-            case deserialize(value) do
-              {:ok, _} -> true
-              {:error, _} -> false
+          def deserialize(value), do: deserialize_error(value)
+
+          defp deserialize_error(value),
+            do: {:error, "Invalid Data#{unquote(size)}: #{inspect(value)}"}
+
+          def is_data?(value) when is_binary(value) do
+            if String.length(value) == unquote(expected_string_len) do
+              EthereumApi.Types.Data.is_data?(value)
+            else
+              false
             end
           end
+
+          def is_data?(_), do: false
 
           @spec deserialize!(any()) :: t()
           def deserialize!(value) do
@@ -52,8 +58,11 @@ defmodule EthereumApi.Types.Helper do
         end
       end
 
-    readable_code = ast |> Macro.to_string() |> Code.format_string!() |> IO.iodata_to_binary()
-    IO.puts("Generated code for module #{module_name}\n#{readable_code}")
+    if debug do
+      readable_code = ast |> Macro.to_string() |> Code.format_string!() |> IO.iodata_to_binary()
+      IO.puts("Generated code for module #{module_name}\n#{readable_code}")
+    end
+
     ast
   end
 end

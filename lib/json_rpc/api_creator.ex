@@ -1,11 +1,11 @@
 defmodule JsonRpc.ApiCreator do
-  defmacro __using__({client, methods}) do
+  defmacro __using__({client, methods}, debug \\ false) do
     module = __CALLER__.module
 
     methods
     |> List.wrap()
     |> Enum.map(&generate_ast(&1, client, module))
-    |> print_debug_code(module)
+    |> print_debug_code(module, debug)
   end
 
   defp generate_ast({:%{}, _, opts}, client, module) do
@@ -104,9 +104,12 @@ defmodule JsonRpc.ApiCreator do
     end
   end
 
-  defp print_debug_code(ast, module) do
-    readable_code = ast |> Macro.to_string() |> Code.format_string!() |> IO.iodata_to_binary()
-    IO.puts("Generated code for module #{module} #{readable_code}")
+  defp print_debug_code(ast, module, debug) do
+    if debug do
+      readable_code = ast |> Macro.to_string() |> Code.format_string!() |> IO.iodata_to_binary()
+      IO.puts("Generated code for module #{module} #{readable_code}")
+    end
+
     ast
   end
 

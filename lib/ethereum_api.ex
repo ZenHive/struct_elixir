@@ -17,9 +17,9 @@ defmodule EthereumApi do
           - data: The data to convert into a SHA3 hash
         """,
         args: {data, EthereumApi.Types.Hexadecimal.t()},
-        args_transformer!: &EthereumApi.Types.Hexadecimal.deserialize!/1,
+        args_transformer!: &EthereumApi.Types.Data.deserialize!/1,
         response_type: {:type_alias, String.t()},
-        response_parser: &EthereumApi.Types.Hexadecimal.deserialize/1
+        response_parser: &EthereumApi.Types.Data.deserialize/1
       },
       %{
         method: "net_version",
@@ -65,8 +65,8 @@ defmodule EthereumApi do
       %{
         method: "eth_chainId",
         doc: "Returns the chain ID used for signing replay-protected transactions.",
-        response_type: {:type_alias, EthereumApi.Types.Hexadecimal.t()},
-        response_parser: &EthereumApi.Types.Hexadecimal.deserialize/1
+        response_type: {:type_alias, EthereumApi.Types.Data.t()},
+        response_parser: &EthereumApi.Types.Data.deserialize/1
       },
       %{
         method: "eth_mining",
@@ -319,7 +319,7 @@ defmodule EthereumApi do
           - from: The address the transaction is sent from.
           - data: The compiled code of a contract OR the hash of the invoked method signature and
             encoded parameters.
-          - opts: A keyword list with the following options:
+          - opts: A keyword list with the following optional options:
             - to: The address the transaction is directed to.
             - gas: Integer of the gas provided for the transaction execution. It will return unused
               gas.
@@ -344,7 +344,7 @@ defmodule EthereumApi do
            ]}
         ],
         args_transformer!: fn from, data, opts ->
-          create_transaction_object(
+          create_transaction_object!(
             %{
               from: EthereumApi.Types.Data20.deserialize!(from),
               data: EthereumApi.Types.Data.deserialize!(data)
@@ -365,7 +365,7 @@ defmodule EthereumApi do
           - from: The address the transaction is sent from.
           - data: The compiled code of a contract OR the hash of the invoked method signature and
             encoded parameters.
-          - opts: A keyword list with the following options:
+          - opts: A keyword list with the following optional options:
             - to: The address the transaction is directed to.
             - gas: Integer of the gas provided for the transaction execution. It will return unused
               gas.
@@ -392,7 +392,7 @@ defmodule EthereumApi do
            ]}
         ],
         args_transformer!: fn from, data, opts ->
-          create_transaction_object(
+          create_transaction_object!(
             %{
               from: EthereumApi.Types.Data20.deserialize!(from),
               data: EthereumApi.Types.Data.deserialize!(data)
@@ -420,11 +420,58 @@ defmodule EthereumApi do
         args_transformer!: &EthereumApi.Types.Data.deserialize!/1,
         response_type: {:type_alias, EthereumApi.Types.Data32.t()},
         response_parser: &EthereumApi.Types.Data32.deserialize/1
+      },
+      %{
+        method: "eth_call",
+        doc: """
+          Executes a new message call immediately without creating a transaction on the blockchain.
+          Often used for executing read-only smart contract functions, for example the balanceOf for
+          an ERC-20 contract.
+
+          # Parameters
+          - transaction: The transaction call object.
+            - to: The address the transaction is directed to.
+            - opts: A keyword list with the following optional options:
+              - from: The address the transaction is sent from.
+              - gas: Integer of the gas provided for the transaction execution. eth_call consumes
+                zero gas, but this parameter may be needed by some executions.
+              - gas_price: Integer of the gasPrice used for each paid gas, in Wei.
+              - value: Integer of the value sent with this transaction, in Wei.
+              - data: Hash of the method signature and encoded parameters. For details see
+                Ethereum Contract ABI in the Solidity documentation.
+                https://docs.soliditylang.org/en/latest/abi-spec.html
+
+          - block_number_or_tag: Integer block number, or one of the following strings
+            #{inspect(EthereumApi.Types.Tag.tags())}
+
+          # Returns
+          - Data - the return value of the executed contract.
+        """,
+        args: [
+          {transaction,
+           {{:to, EthereumApi.Types.Data20.t()},
+            opts :: [
+              {:from, EthereumApi.Types.Data20.t()},
+              {:gas, EthereumApi.Types.Quantity.t()},
+              {:gas_price, EthereumApi.Types.Wei.t()},
+              {:value, EthereumApi.Types.Wei.t()},
+              {:data, EthereumApi.Types.Data.t()}
+            ]}},
+          {block_number_or_tag, EthereumApi.Types.Quantity.t() | EthereumApi.Types.Tag.t()}
+        ],
+        args_transformer!: fn {{:to, to}, opts}, block_number_or_tag ->
+          [
+            create_transaction_object!(%{to: to}, opts),
+            deserialize_quantity_or_tag!(block_number_or_tag)
+          ]
+        end,
+        response_type: {:type_alias, EthereumApi.Types.Data.t()},
+        response_parser: &EthereumApi.Types.Data.deserialize/1
       }
     ]
   }
 
-  defp create_transaction_object(transaction, opts) do
+  def create_transaction_object!(transaction, opts) do
     Enum.reduce(opts, transaction, fn {opt, value}, acc ->
       value =
         cond do
@@ -445,9 +492,10 @@ defmodule EthereumApi do
         end
 
       Map.get_and_update(acc, opt, fn
-        nil -> value
+        nil -> {nil, value}
         _ -> raise ArgumentError, "Invalid/Duplicate option: #{inspect(opt)}"
       end)
+      |> elem(1)
     end)
   end
 
