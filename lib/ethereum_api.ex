@@ -327,6 +327,9 @@ defmodule EthereumApi do
             - value: Integer of the value sent with this transaction, in Wei.
             - nonce: Integer of a nonce. This allows to overwrite your own pending transactions
               that use the same nonce.
+
+          # Returns
+          - Data - The RLP-encoded transaction object signed by the specified account.
         """,
         args: [
           {from, EthereumApi.Types.Data20.t()},
