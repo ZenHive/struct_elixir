@@ -354,6 +354,54 @@ defmodule EthereumApi do
         end,
         response_type: {:type_alias, EthereumApi.Types.Data.t()},
         response_parser: &EthereumApi.Types.Data.deserialize/1
+      },
+      %{
+        method: "eth_sendTransaction",
+        doc: """
+          Creates new message call transaction or a contract creation, if the data field contains
+          code, and signs it using the account specified in from.
+
+          # Parameters
+          - from: The address the transaction is sent from.
+          - data: The compiled code of a contract OR the hash of the invoked method signature and
+            encoded parameters.
+          - opts: A keyword list with the following options:
+            - to: The address the transaction is directed to.
+            - gas: Integer of the gas provided for the transaction execution. It will return unused
+              gas.
+            - gas_price: Integer of the gasPrice used for each paid gas, in Wei.
+            - value: Integer of the value sent with this transaction, in Wei.
+            - nonce: Integer of a nonce. This allows to overwrite your own pending transactions
+              that use the same nonce.
+
+          # Returns
+          - Data32 - the transaction hash, or the zero hash if the transaction is not yet available.
+            Use eth_getTransactionReceipt to get the contract address, after the transaction was
+            proposed in a block, when you created a contract.
+        """,
+        args: [
+          {from, EthereumApi.Types.Data20.t()},
+          {data, EthereumApi.Types.Data.t()},
+          {opts,
+           [
+             {:to, EthereumApi.Types.Data20.t()},
+             {:gas, EthereumApi.Types.Quantity.t()},
+             {:gas_price, EthereumApi.Types.Wei.t()},
+             {:value, EthereumApi.Types.Wei.t()},
+             {:nonce, EthereumApi.Types.Quantity.t()}
+           ]}
+        ],
+        args_transformer!: fn from, data, opts ->
+          create_transaction_object(
+            %{
+              from: EthereumApi.Types.Data20.deserialize!(from),
+              data: EthereumApi.Types.Data.deserialize!(data)
+            },
+            opts
+          )
+        end,
+        response_type: {:type_alias, EthereumApi.Types.Data32.t()},
+        response_parser: &EthereumApi.Types.Data32.deserialize/1
       }
     ]
   }
