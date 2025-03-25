@@ -16,8 +16,8 @@ defmodule EthereumApi do
           # Parameters
           - data: The data to convert into a SHA3 hash
         """,
-        args: [{data, EthereumApi.Types.Hexadecimal.t()}],
-        args_checker!: &EthereumApi.Types.Hexadecimal.is_hexadecimal!/1,
+        args: {data, EthereumApi.Types.Hexadecimal.t()},
+        args_transformer!: &EthereumApi.Types.Hexadecimal.deserialize!/1,
         response_type: {:type_alias, String.t()},
         response_parser: &EthereumApi.Types.Hexadecimal.deserialize/1
       },
@@ -143,9 +143,11 @@ defmodule EthereumApi do
           {address, EthereumApi.Types.Data20.t()},
           {block_number_or_tag, EthereumApi.Types.Quantity.t() | EthereumApi.Types.Tag.t()}
         ],
-        args_checker!: fn address, block_number_or_tag ->
-          EthereumApi.Types.Data20.is_data!(address)
-          is_quantity_or_tag!(block_number_or_tag)
+        args_transformer!: fn address, block_number_or_tag ->
+          [
+            EthereumApi.Types.Data20.deserialize!(address),
+            deserialize_quantity_or_tag!(block_number_or_tag)
+          ]
         end,
         response_type: {:type_alias, EthereumApi.Types.Wei.t()},
         response_parser: &EthereumApi.Types.Wei.deserialize/1
@@ -168,10 +170,12 @@ defmodule EthereumApi do
           {position, EthereumApi.Types.Quantity.t()},
           {block_number_or_tag, EthereumApi.Types.Quantity.t() | EthereumApi.Types.Tag.t()}
         ],
-        args_checker!: fn address, position, block_number_or_tag ->
-          EthereumApi.Types.Data20.is_data!(address)
-          EthereumApi.Types.Quantity.is_quantity!(position)
-          is_quantity_or_tag!(block_number_or_tag)
+        args_transformer!: fn address, position, block_number_or_tag ->
+          [
+            EthereumApi.Types.Data20.deserialize!(address),
+            EthereumApi.Types.Quantity.deserialize!(position),
+            deserialize_quantity_or_tag!(block_number_or_tag)
+          ]
         end,
         response_type: {:type_alias, EthereumApi.Types.Data.t()},
         response_parser: &EthereumApi.Types.Data.deserialize/1
@@ -190,9 +194,11 @@ defmodule EthereumApi do
           {address, EthereumApi.Types.Data20.t()},
           {block_number_or_tag, EthereumApi.Types.Quantity.t() | EthereumApi.Types.Tag.t()}
         ],
-        args_checker!: fn address, block_number_or_tag ->
-          EthereumApi.Types.Data20.is_data!(address)
-          is_quantity_or_tag!(block_number_or_tag)
+        args_transformer!: fn address, block_number_or_tag ->
+          [
+            EthereumApi.Types.Data20.deserialize!(address),
+            deserialize_quantity_or_tag!(block_number_or_tag)
+          ]
         end,
         response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
         response_parser: &EthereumApi.Types.Quantity.deserialize/1
@@ -205,8 +211,8 @@ defmodule EthereumApi do
           # Parameters
           - block_hash: The block hash
         """,
-        args: [{block_hash, EthereumApi.Types.Data32.t()}],
-        args_checker!: &EthereumApi.Types.Data32.is_data!/1,
+        args: {block_hash, EthereumApi.Types.Data32.t()},
+        args_transformer!: &EthereumApi.Types.Data32.deserialize!/1,
         response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
         response_parser: &EthereumApi.Types.Quantity.deserialize/1
       },
@@ -219,8 +225,8 @@ defmodule EthereumApi do
           - block_number_or_tag: Integer block number, or one of the following strings
             #{inspect(EthereumApi.Types.Tag.tags())}
         """,
-        args: [{block_number_or_tag, EthereumApi.Types.Quantity.t() | EthereumApi.Types.Tag.t()}],
-        args_checker!: &is_quantity_or_tag!/1,
+        args: {block_number_or_tag, EthereumApi.Types.Quantity.t() | EthereumApi.Types.Tag.t()},
+        args_transformer!: &deserialize_quantity_or_tag!/1,
         response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
         response_parser: &EthereumApi.Types.Quantity.deserialize/1
       },
@@ -232,8 +238,8 @@ defmodule EthereumApi do
           # Parameters
           - block_hash: The block hash
         """,
-        args: [{block_hash, EthereumApi.Types.Data32.t()}],
-        args_checker!: &EthereumApi.Types.Data32.is_data!/1,
+        args: {block_hash, EthereumApi.Types.Data32.t()},
+        args_transformer!: &EthereumApi.Types.Data32.deserialize!/1,
         response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
         response_parser: &EthereumApi.Types.Quantity.deserialize/1
       },
@@ -246,8 +252,8 @@ defmodule EthereumApi do
           - block_number_or_tag: Integer block number, or one of the following strings
             #{inspect(EthereumApi.Types.Tag.tags())}
         """,
-        args: [{block_number_or_tag, EthereumApi.Types.Quantity.t() | EthereumApi.Types.Tag.t()}],
-        args_checker!: &is_quantity_or_tag!/1,
+        args: {block_number_or_tag, EthereumApi.Types.Quantity.t() | EthereumApi.Types.Tag.t()},
+        args_transformer!: &deserialize_quantity_or_tag!/1,
         response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
         response_parser: &EthereumApi.Types.Quantity.deserialize/1
       },
@@ -265,9 +271,11 @@ defmodule EthereumApi do
           {address, EthereumApi.Types.Data20.t()},
           {block_number_or_tag, EthereumApi.Types.Quantity.t() | EthereumApi.Types.Tag.t()}
         ],
-        args_checker!: fn address, block_number_or_tag ->
-          EthereumApi.Types.Data20.is_data!(address)
-          is_quantity_or_tag!(block_number_or_tag)
+        args_transformer!: fn address, block_number_or_tag ->
+          [
+            EthereumApi.Types.Data20.deserialize!(address),
+            deserialize_quantity_or_tag!(block_number_or_tag)
+          ]
         end,
         response_type: {:type_alias, EthereumApi.Types.Data.t()},
         response_parser: &EthereumApi.Types.Data.deserialize/1
@@ -292,9 +300,11 @@ defmodule EthereumApi do
           {address, EthereumApi.Types.Data20.t()},
           {data, EthereumApi.Types.Data.t()}
         ],
-        args_checker!: fn address, data ->
-          EthereumApi.Types.Data20.is_data!(address)
-          EthereumApi.Types.Data.is_data!(data)
+        args_transformer!: fn address, data ->
+          [
+            EthereumApi.Types.Data20.deserialize!(address),
+            EthereumApi.Types.Data.deserialize!(data)
+          ]
         end,
         response_type: {:type_alias, EthereumApi.Types.Data.t()},
         response_parser: &EthereumApi.Types.Data.deserialize/1

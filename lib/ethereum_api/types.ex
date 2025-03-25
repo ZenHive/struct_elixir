@@ -5,6 +5,10 @@ defmodule EthereumApi.Types do
     @type t :: String.t()
 
     def deserialize(value), do: EthereumApi.Types.Quantity.deserialize(value)
+
+    def deserialize!(value), do: EthereumApi.Types.Quantity.deserialize!(value)
+
+    def is_wei?(value), do: EthereumApi.Types.Quantity.is_quantity?(value)
   end
 
   defmodule Tag do
@@ -27,11 +31,11 @@ defmodule EthereumApi.Types do
       end
     end
 
-    def is_tag!(value) do
-      if is_tag?(value) do
-        :ok
-      else
-        raise ArgumentError, "Expected a tag, found #{inspect(value)}"
+    @spec deserialize!(any()) :: t()
+    def deserialize!(value) do
+      case deserialize(value) do
+        {:ok, value} -> value
+        {:error, _} -> raise ArgumentError, "Expected a tag, found #{inspect(value)}"
       end
     end
   end
@@ -51,11 +55,11 @@ defmodule EthereumApi.Types do
       end
     end
 
-    def is_data!(value) do
-      if is_data?(value) do
-        :ok
-      else
-        raise ArgumentError, "Expected a Data, found #{inspect(value)}"
+    @spec deserialize!(any()) :: t()
+    def deserialize!(value) do
+      case deserialize(value) do
+        {:ok, value} -> value
+        {:error, _} -> raise ArgumentError, "Expected a Data, found #{inspect(value)}"
       end
     end
   end
@@ -112,11 +116,11 @@ defmodule EthereumApi.Types do
       end
     end
 
-    def is_quantity!(value) do
-      if is_quantity?(value) do
-        :ok
-      else
-        raise ArgumentError, "Expected a quantity, found #{inspect(value)}"
+    @spec deserialize!(any()) :: t()
+    def deserialize!(value) do
+      case deserialize(value) do
+        {:ok, value} -> value
+        {:error, _} -> raise ArgumentError, "Expected a quantity, found #{inspect(value)}"
       end
     end
   end
@@ -140,11 +144,11 @@ defmodule EthereumApi.Types do
       String.match?(string, ~r/^0x[0-9a-fA-F]+$/)
     end
 
-    def is_hexadecimal!(value) do
-      if is_hexadecimal?(value) do
-        :ok
-      else
-        raise ArgumentError, "Expected a hexadecimal, found #{inspect(value)}"
+    @spec deserialize!(any()) :: t()
+    def deserialize!(value) do
+      case deserialize(value) do
+        {:ok, value} -> value
+        {:error, _} -> raise ArgumentError, "Expected a hexadecimal, found #{inspect(value)}"
       end
     end
   end

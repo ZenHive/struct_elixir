@@ -39,11 +39,14 @@ defmodule EthereumApi.Types.Helper do
             end
           end
 
-          def is_data!(value) do
-            if is_data?(value) do
-              :ok
-            else
-              raise ArgumentError, "Expected a Data#{unquote(size)}, found #{inspect(value)}"
+          @spec deserialize!(any()) :: t()
+          def deserialize!(value) do
+            case deserialize(value) do
+              {:ok, value} ->
+                value
+
+              {:error, _} ->
+                raise ArgumentError, "Expected a Data#{unquote(size)}, found #{inspect(value)}"
             end
           end
         end
