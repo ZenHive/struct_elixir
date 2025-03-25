@@ -308,14 +308,91 @@ defmodule EthereumApi do
         end,
         response_type: {:type_alias, EthereumApi.Types.Data.t()},
         response_parser: &EthereumApi.Types.Data.deserialize/1
+      },
+      %{
+        method: "eth_signTransaction",
+        doc: """
+          Signs a transaction that can be submitted to the network at a later time using with
+          eth_sendRawTransaction.
+
+          # Parameters
+          - from: The address the transaction is sent from.
+          - data: The compiled code of a contract OR the hash of the invoked method signature and
+            encoded parameters.
+          - opts: A keyword list with the following options:
+            - to: The address the transaction is directed to.
+            - gas: Integer of the gas provided for the transaction execution. It will return unused
+              gas.
+            - gas_price: Integer of the gasPrice used for each paid gas, in Wei.
+            - value: Integer of the value sent with this transaction, in Wei.
+            - nonce: Integer of a nonce. This allows to overwrite your own pending transactions
+              that use the same nonce.
+        """,
+        args: [
+          {from, EthereumApi.Types.Data20.t()},
+          {data, EthereumApi.Types.Data.t()},
+          {opts,
+           [
+             {:to, EthereumApi.Types.Data20.t()},
+             {:gas, EthereumApi.Types.Quantity.t()},
+             {:gas_price, EthereumApi.Types.Wei.t()},
+             {:value, EthereumApi.Types.Wei.t()},
+             {:nonce, EthereumApi.Types.Quantity.t()}
+           ]}
+        ],
+        args_transformer!: fn from, data, opts ->
+          create_transaction_object(
+            %{
+              from: EthereumApi.Types.Data20.deserialize!(from),
+              data: EthereumApi.Types.Data.deserialize!(data)
+            },
+            opts
+          )
+        end,
+        response_type: {:type_alias, EthereumApi.Types.Data.t()},
+        response_parser: &EthereumApi.Types.Data.deserialize/1
       }
     ]
   }
 
-  defp is_quantity_or_tag!(value) do
-    if not (EthereumApi.Types.Quantity.is_quantity?(value) or
-              EthereumApi.Types.Tag.is_tag?(value)) do
-      raise ArgumentError, "Expected a block number or a tag, found #{inspect(value)}"
+  defp create_transaction_object(transaction, opts) do
+    Enum.reduce(opts, transaction, fn {opt, value}, acc ->
+      value =
+        cond do
+          opt in [:gas, :nonce] ->
+            EthereumApi.Types.Quantity.deserialize!(value)
+
+          opt in [:gas_price, :value] ->
+            EthereumApi.Types.Wei.deserialize!(value)
+
+          opt in [:to, :from] ->
+            EthereumApi.Types.Data20.deserialize!(value)
+
+          opt == :data ->
+            EthereumApi.Types.Data.deserialize!(value)
+
+          true ->
+            raise ArgumentError, "Invalid option: #{inspect(opt)}"
+        end
+
+      Map.get_and_update(acc, opt, fn
+        nil -> value
+        _ -> raise ArgumentError, "Invalid/Duplicate option: #{inspect(opt)}"
+      end)
+    end)
+  end
+
+  defp deserialize_quantity_or_tag!(value) do
+    try do
+      EthereumApi.Types.Quantity.deserialize!(value)
+    rescue
+      ArgumentError ->
+        try do
+          EthereumApi.Types.Tag.deserialize!(value)
+        rescue
+          ArgumentError ->
+            raise ArgumentError, "Expected a quantity or tag, found #{inspect(value)}"
+        end
     end
   end
 end
