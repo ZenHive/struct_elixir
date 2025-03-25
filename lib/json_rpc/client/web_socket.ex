@@ -7,7 +7,7 @@ defmodule JsonRpc.Client.WebSocket do
 
   @default_timeout :timer.seconds(5)
 
-  @spec start_link(conn_info(), WebSockex.options()) :: {:ok, pid()} | {:error, term()}
+  @spec start_link(conn_info(), WebSockex.options()) :: Result.t(pid(), term())
   def start_link(conn, opts \\ []) do
     WebSockex.start_link(conn, Handler, %Handler.State{}, opts)
   end
@@ -17,7 +17,7 @@ defmodule JsonRpc.Client.WebSocket do
           JsonRpc.Request.method(),
           JsonRpc.Request.params(),
           timeout :: integer()
-        ) :: {:ok, JsonRpc.Response.t()} | {:error, term()}
+        ) :: Result.t(JsonRpc.Response.t(), term())
   def call_with_params(client, method, params, timeout \\ @default_timeout)
       when is_method(method) and is_params(params) and is_integer(timeout) do
     WebSockex.cast(client, {:call_with_params, {self(), method, params}})
@@ -28,8 +28,7 @@ defmodule JsonRpc.Client.WebSocket do
           WebSockex.client(),
           JsonRpc.Request.method(),
           timeout :: integer()
-        ) ::
-          {:ok, JsonRpc.Response.t()} | {:error, term()}
+        ) :: Result.t(JsonRpc.Response.t(), term())
   def call_without_params(client, method, timeout \\ @default_timeout)
       when is_method(method) and is_integer(timeout) do
     WebSockex.cast(client, {:call_without_params, {self(), method}})
@@ -37,7 +36,7 @@ defmodule JsonRpc.Client.WebSocket do
   end
 
   @spec receive_response(WebSockex.client(), timeout :: integer()) ::
-          {:ok, JsonRpc.Response.t()} | {:error, term()}
+          Result.t(JsonRpc.Response.t(), term())
   defp receive_response(client, timeout) do
     receive do
       {:json_rpc_frame, response} -> {:ok, response}

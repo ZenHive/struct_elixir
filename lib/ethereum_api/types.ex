@@ -74,7 +74,7 @@ defmodule EthereumApi.Types do
             additional_data: map()
           }
 
-    @spec deserialize(term()) :: {:ok, t()} | {:error, String.t()}
+    @spec deserialize(term()) :: Result.t(t(), String.t())
     def deserialize(false), do: {:ok, false}
 
     def deserialize(

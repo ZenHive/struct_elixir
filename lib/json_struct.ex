@@ -39,14 +39,14 @@ defmodule JsonStruct do
               )
             }
 
-      @spec serialize(__MODULE__.t()) :: {:ok, String.t()} | {:error, String.t()}
+      @spec serialize(__MODULE__.t()) :: Result.t(String.t(), String.t())
       def serialize(struct = %__MODULE__{}) do
         with {:ok, json} <- Poison.encode(struct),
              {:ok, struct} <- JsonStruct.Support.validate_and_build(struct, @fields, __MODULE__),
              do: {:ok, json}
       end
 
-      @spec deserialize(String.t() | map()) :: {:ok, __MODULE__.t()} | {:error, String.t()}
+      @spec deserialize(String.t() | map()) :: Result.t(__MODULE__.t(), String.t())
       def deserialize(json) when is_binary(json) do
         with {:ok, map} <- JSON.decode(json),
              do: JsonStruct.Support.validate_and_build(map, @fields, __MODULE__)
