@@ -319,7 +319,7 @@ defmodule EthereumApi do
           - from: The address the transaction is sent from.
           - data: The compiled code of a contract OR the hash of the invoked method signature and
             encoded parameters.
-          - opts: A keyword list with the following optional options:
+          - opts: A keyword list with the following optional values:
             - to: The address the transaction is directed to.
             - gas: Integer of the gas provided for the transaction execution. It will return unused
               gas.
@@ -365,7 +365,7 @@ defmodule EthereumApi do
           - from: The address the transaction is sent from.
           - data: The compiled code of a contract OR the hash of the invoked method signature and
             encoded parameters.
-          - opts: A keyword list with the following optional options:
+          - opts: A keyword list with the following optional values:
             - to: The address the transaction is directed to.
             - gas: Integer of the gas provided for the transaction execution. It will return unused
               gas.
@@ -431,7 +431,7 @@ defmodule EthereumApi do
           # Parameters
           - transaction: The transaction call object.
             - to: The address the transaction is directed to.
-            - opts: A keyword list with the following optional options:
+            - opts: A keyword list with the following optional values:
               - from: The address the transaction is sent from.
               - gas: Integer of the gas provided for the transaction execution. eth_call consumes
                 zero gas, but this parameter may be needed by some executions.
