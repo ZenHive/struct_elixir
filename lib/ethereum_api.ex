@@ -467,6 +467,54 @@ defmodule EthereumApi do
         end,
         response_type: {:type_alias, EthereumApi.Types.Data.t()},
         response_parser: &EthereumApi.Types.Data.deserialize/1
+      },
+      %{
+        method: "eth_estimateGas",
+        doc: """
+          Generates and returns an estimate of how much gas is necessary to allow the transaction
+          to complete. The transaction will not be added to the blockchain. Note that the estimate
+          may be significantly more than the amount of gas actually used by the transaction, for a
+          variety of reasons including EVM mechanics and node performance.
+
+          # Parameters
+          - transaction: A keyword list with the following optional values:
+            - to: The address the transaction is directed to.
+            - from: The address the transaction is sent from.
+            - gas: Integer of the gas provided for the transaction execution.
+            - gas_price: Integer of the gasPrice used for each paid gas, in Wei.
+            - value: Integer of the value sent with this transaction, in Wei.
+            - data: The compiled code of a contract OR the hash of the invoked method signature and
+              encoded parameters.
+
+          - block_number_or_tag: nil, or an Integer block number, or one of the following strings
+            #{inspect(EthereumApi.Types.Tag.tags())}
+
+          # Returns
+          - Wei - the amount of gas used.
+        """,
+        args: [
+          {transaction,
+           [
+             {:to, EthereumApi.Types.Data20.t()},
+             {:from, EthereumApi.Types.Data20.t()},
+             {:gas, EthereumApi.Types.Quantity.t()},
+             {:gas_price, EthereumApi.Types.Wei.t()},
+             {:value, EthereumApi.Types.Wei.t()},
+             {:data, EthereumApi.Types.Data.t()}
+           ]},
+          {block_number_or_tag, EthereumApi.Types.Quantity.t() | EthereumApi.Types.Tag.t() | nil}
+        ],
+        args_transformer!: fn transaction, block_number_or_tag ->
+          transaction = create_transaction_object!(%{}, transaction)
+
+          if block_number_or_tag do
+            [transaction, deserialize_quantity_or_tag!(block_number_or_tag)]
+          else
+            [transaction]
+          end
+        end,
+        response_type: {:type_alias, EthereumApi.Types.Wei.t()},
+        response_parser: &EthereumApi.Types.Wei.deserialize/1
       }
     ]
   }
