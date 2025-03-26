@@ -1,4 +1,6 @@
 defmodule EthereumApi.Support.Deserializer do
+  @moduledoc false
+
   @doc """
   Deserializes an optional value using the provided deserializer function.
   Returns {:ok, nil} if the value is nil, otherwise applies the deserializer.

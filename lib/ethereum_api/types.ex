@@ -143,6 +143,8 @@ defmodule EthereumApi.Types do
   end
 
   defmodule Block do
+    alias EthereumApi.Support.Deserializer
+
     @struct_fields [
       :number,
       :hash,
@@ -189,78 +191,78 @@ defmodule EthereumApi.Types do
 
     @spec deserialize(term()) :: Result.t(t(), String.t())
     def deserialize(block) when is_map(block) do
-      with {:ok, number} =
-             EthereumApi.Support.Deserializer.deserialize_optional(
-               block["number"],
-               &EthereumApi.Types.Quantity.deserialize/1
-             )
-             |> Result.map_err(fn err -> "Failed to parse field number of Block: #{err}" end),
-           {:ok, hash} =
-             EthereumApi.Support.Deserializer.deserialize_optional(
-               block["hash"],
-               &EthereumApi.Types.Data32.deserialize/1
-             )
-             |> Result.map_err(fn err -> "Failed to parse field hash of Block: #{err}" end),
+      with {:ok, number} <-
+             block["number"]
+             |> Deserializer.deserialize_optional(&EthereumApi.Types.Quantity.deserialize/1)
+             |> Result.map_err(&"Failed to parse field number of Block: #{&1}"),
+           {:ok, hash} <-
+             block["hash"]
+             |> Deserializer.deserialize_optional(&EthereumApi.Types.Data32.deserialize/1)
+             |> Result.map_err(&"Failed to parse field hash of Block: #{&1}"),
            {:ok, parent_hash} <-
-             EthereumApi.Types.Data32.deserialize(block["parentHash"])
-             |> Result.map_err(fn err -> "Failed to parse field parent_hash of Block: #{err}" end),
-           {:ok, nonce} =
-             EthereumApi.Support.Deserializer.deserialize_optional(
-               block["nonce"],
-               &EthereumApi.Types.Data8.deserialize/1
-             )
-             |> Result.map_err(fn err -> "Failed to parse field nonce of Block: #{err}" end),
+             block["parentHash"]
+             |> EthereumApi.Types.Data32.deserialize()
+             |> Result.map_err(&"Failed to parse field parent_hash of Block: #{&1}"),
+           {:ok, nonce} <-
+             block["nonce"]
+             |> Deserializer.deserialize_optional(&EthereumApi.Types.Data8.deserialize/1)
+             |> Result.map_err(&"Failed to parse field nonce of Block: #{&1}"),
            {:ok, sha3_uncles} <-
-             EthereumApi.Types.Data32.deserialize(block["sha3Uncles"])
-             |> Result.map_err(fn err -> "Failed to parse field sha3_uncles of Block: #{err}" end),
-           {:ok, logs_bloom} =
-             EthereumApi.Support.Deserializer.deserialize_optional(
-               block["logsBloom"],
-               &EthereumApi.Types.Data256.deserialize/1
-             )
-             |> Result.map_err(fn err -> "Failed to parse field logs_bloom of Block: #{err}" end),
+             block["sha3Uncles"]
+             |> EthereumApi.Types.Data32.deserialize()
+             |> Result.map_err(&"Failed to parse field sha3_uncles of Block: #{&1}"),
+           {:ok, logs_bloom} <-
+             block["logsBloom"]
+             |> Deserializer.deserialize_optional(&EthereumApi.Types.Data256.deserialize/1)
+             |> Result.map_err(&"Failed to parse field logs_bloom of Block: #{&1}"),
            {:ok, transactions_root} <-
-             EthereumApi.Types.Data32.deserialize(block["transactionsRoot"])
-             |> Result.map_err(fn err ->
-               "Failed to parse field transactions_root of Block: #{err}"
-             end),
+             block["transactionsRoot"]
+             |> EthereumApi.Types.Data32.deserialize()
+             |> Result.map_err(&"Failed to parse field transactions_root of Block: #{&1}"),
            {:ok, state_root} <-
-             EthereumApi.Types.Data32.deserialize(block["stateRoot"])
-             |> Result.map_err(fn err -> "Failed to parse field state_root of Block: #{err}" end),
+             block["stateRoot"]
+             |> EthereumApi.Types.Data32.deserialize()
+             |> Result.map_err(&"Failed to parse field state_root of Block: #{&1}"),
            {:ok, receipts_root} <-
-             EthereumApi.Types.Data32.deserialize(block["receiptsRoot"])
-             |> Result.map_err(fn err ->
-               "Failed to parse field receipts_root of Block: #{err}"
-             end),
+             block["receiptsRoot"]
+             |> EthereumApi.Types.Data32.deserialize()
+             |> Result.map_err(&"Failed to parse field receipts_root of Block: #{&1}"),
            {:ok, miner} <-
-             EthereumApi.Types.Data20.deserialize(block["miner"])
-             |> Result.map_err(fn err -> "Failed to parse field miner of Block: #{err}" end),
+             block["miner"]
+             |> EthereumApi.Types.Data20.deserialize()
+             |> Result.map_err(&"Failed to parse field miner of Block: #{&1}"),
            {:ok, difficulty} <-
-             EthereumApi.Types.Quantity.deserialize(block["difficulty"])
-             |> Result.map_err(fn err -> "Failed to parse field difficulty of Block: #{err}" end),
+             block["difficulty"]
+             |> EthereumApi.Types.Quantity.deserialize()
+             |> Result.map_err(&"Failed to parse field difficulty of Block: #{&1}"),
            {:ok, extra_data} <-
-             EthereumApi.Types.Data.deserialize(block["extraData"])
-             |> Result.map_err(fn err -> "Failed to parse field extra_data of Block: #{err}" end),
+             block["extraData"]
+             |> EthereumApi.Types.Data.deserialize()
+             |> Result.map_err(&"Failed to parse field extra_data of Block: #{&1}"),
            {:ok, size} <-
-             EthereumApi.Types.Quantity.deserialize(block["size"])
-             |> Result.map_err(fn err -> "Failed to parse field size of Block: #{err}" end),
+             block["size"]
+             |> EthereumApi.Types.Quantity.deserialize()
+             |> Result.map_err(&"Failed to parse field size of Block: #{&1}"),
            {:ok, gas_limit} <-
-             EthereumApi.Types.Quantity.deserialize(block["gasLimit"])
-             |> Result.map_err(fn err -> "Failed to parse field gas_limit of Block: #{err}" end),
+             block["gasLimit"]
+             |> EthereumApi.Types.Quantity.deserialize()
+             |> Result.map_err(&"Failed to parse field gas_limit of Block: #{&1}"),
            {:ok, gas_used} <-
-             EthereumApi.Types.Quantity.deserialize(block["gasUsed"])
-             |> Result.map_err(fn err -> "Failed to parse field gas_used of Block: #{err}" end),
+             block["gasUsed"]
+             |> EthereumApi.Types.Quantity.deserialize()
+             |> Result.map_err(&"Failed to parse field gas_used of Block: #{&1}"),
            {:ok, timestamp} <-
-             EthereumApi.Types.Quantity.deserialize(block["timestamp"])
-             |> Result.map_err(fn err -> "Failed to parse field timestamp of Block: #{err}" end),
+             block["timestamp"]
+             |> EthereumApi.Types.Quantity.deserialize()
+             |> Result.map_err(&"Failed to parse field timestamp of Block: #{&1}"),
            {:ok, transactions} <-
-             deserialize_transactions(block["transactions"])
-             |> Result.map_err(fn err ->
-               "Failed to parse field transactions of Block: #{err}"
-             end),
+             block["transactions"]
+             |> deserialize_transactions()
+             |> Result.map_err(&"Failed to parse field transactions of Block: #{&1}"),
            {:ok, uncles} <-
-             EthereumApi.Types.Data32.deserialize_list(block["uncles"])
-             |> Result.map_err(fn err -> "Failed to parse field uncles of Block: #{err}" end) do
+             block["uncles"]
+             |> EthereumApi.Types.Data32.deserialize_list()
+             |> Result.map_err(&"Failed to parse field uncles of Block: #{&1}") do
         {:ok,
          %__MODULE__{
            number: number,
@@ -316,6 +318,8 @@ defmodule EthereumApi.Types do
   end
 
   defmodule Transaction do
+    alias EthereumApi.Support.Deserializer
+
     @struct_fields [
       :block_hash,
       :block_number,
@@ -354,68 +358,62 @@ defmodule EthereumApi.Types do
 
     @spec deserialize(term()) :: Result.t(t(), String.t())
     def deserialize(transaction) when is_map(transaction) do
-      with {:ok, block_hash} =
-             EthereumApi.Support.Deserializer.deserialize_optional(
-               transaction["blockHash"],
-               &EthereumApi.Types.Data32.deserialize/1
-             )
-             |> Result.map_err(fn err ->
-               "Failed to parse field block_hash of Transaction: #{err}"
-             end),
-           {:ok, block_number} =
-             EthereumApi.Support.Deserializer.deserialize_optional(
-               transaction["blockNumber"],
-               &EthereumApi.Types.Quantity.deserialize/1
-             )
-             |> Result.map_err(fn err ->
-               "Failed to parse field block_number of Transaction: #{err}"
-             end),
+      with {:ok, block_hash} <-
+             transaction["blockHash"]
+             |> Deserializer.deserialize_optional(&EthereumApi.Types.Data32.deserialize/1)
+             |> Result.map_err(&"Failed to parse field block_hash of Transaction: #{&1}"),
+           {:ok, block_number} <-
+             transaction["blockNumber"]
+             |> Deserializer.deserialize_optional(&EthereumApi.Types.Quantity.deserialize/1)
+             |> Result.map_err(&"Failed to parse field block_number of Transaction: #{&1}"),
            {:ok, from} <-
-             EthereumApi.Types.Data20.deserialize(transaction["from"])
-             |> Result.map_err(fn err -> "Failed to parse field from of Transaction: #{err}" end),
+             transaction["from"]
+             |> EthereumApi.Types.Data20.deserialize()
+             |> Result.map_err(&"Failed to parse field from of Transaction: #{&1}"),
            {:ok, gas} <-
-             EthereumApi.Types.Quantity.deserialize(transaction["gas"])
-             |> Result.map_err(fn err -> "Failed to parse field gas of Transaction: #{err}" end),
+             transaction["gas"]
+             |> EthereumApi.Types.Quantity.deserialize()
+             |> Result.map_err(&"Failed to parse field gas of Transaction: #{&1}"),
            {:ok, gas_price} <-
-             EthereumApi.Types.Wei.deserialize(transaction["gasPrice"])
-             |> Result.map_err(fn err ->
-               "Failed to parse field gas_price of Transaction: #{err}"
-             end),
+             transaction["gasPrice"]
+             |> EthereumApi.Types.Wei.deserialize()
+             |> Result.map_err(&"Failed to parse field gas_price of Transaction: #{&1}"),
            {:ok, hash} <-
-             EthereumApi.Types.Data32.deserialize(transaction["hash"])
-             |> Result.map_err(fn err -> "Failed to parse field hash of Transaction: #{err}" end),
+             transaction["hash"]
+             |> EthereumApi.Types.Data32.deserialize()
+             |> Result.map_err(&"Failed to parse field hash of Transaction: #{&1}"),
            {:ok, input} <-
-             EthereumApi.Types.Data.deserialize(transaction["input"])
-             |> Result.map_err(fn err -> "Failed to parse field input of Transaction: #{err}" end),
+             transaction["input"]
+             |> EthereumApi.Types.Data.deserialize()
+             |> Result.map_err(&"Failed to parse field input of Transaction: #{&1}"),
            {:ok, nonce} <-
-             EthereumApi.Types.Quantity.deserialize(transaction["nonce"])
-             |> Result.map_err(fn err -> "Failed to parse field nonce of Transaction: #{err}" end),
-           {:ok, to} =
-             EthereumApi.Support.Deserializer.deserialize_optional(
-               transaction["to"],
-               &EthereumApi.Types.Data20.deserialize/1
-             )
-             |> Result.map_err(fn err -> "Failed to parse field to of Transaction: #{err}" end),
-           {:ok, transaction_index} =
-             EthereumApi.Support.Deserializer.deserialize_optional(
-               transaction["transactionIndex"],
-               &EthereumApi.Types.Quantity.deserialize/1
-             )
-             |> Result.map_err(fn err ->
-               "Failed to parse field transaction_index of Transaction: #{err}"
-             end),
+             transaction["nonce"]
+             |> EthereumApi.Types.Quantity.deserialize()
+             |> Result.map_err(&"Failed to parse field nonce of Transaction: #{&1}"),
+           {:ok, to} <-
+             transaction["to"]
+             |> Deserializer.deserialize_optional(&EthereumApi.Types.Data20.deserialize/1)
+             |> Result.map_err(&"Failed to parse field to of Transaction: #{&1}"),
+           {:ok, transaction_index} <-
+             transaction["transactionIndex"]
+             |> Deserializer.deserialize_optional(&EthereumApi.Types.Quantity.deserialize/1)
+             |> Result.map_err(&"Failed to parse field transaction_index of Transaction: #{&1}"),
            {:ok, value} <-
-             EthereumApi.Types.Wei.deserialize(transaction["value"])
-             |> Result.map_err(fn err -> "Failed to parse field value of Transaction: #{err}" end),
+             transaction["value"]
+             |> EthereumApi.Types.Wei.deserialize()
+             |> Result.map_err(&"Failed to parse field value of Transaction: #{&1}"),
            {:ok, v} <-
-             EthereumApi.Types.Quantity.deserialize(transaction["v"])
-             |> Result.map_err(fn err -> "Failed to parse field v of Transaction: #{err}" end),
+             transaction["v"]
+             |> EthereumApi.Types.Quantity.deserialize()
+             |> Result.map_err(&"Failed to parse field v of Transaction: #{&1}"),
            {:ok, r} <-
-             EthereumApi.Types.Quantity.deserialize(transaction["r"])
-             |> Result.map_err(fn err -> "Failed to parse field r of Transaction: #{err}" end),
+             transaction["r"]
+             |> EthereumApi.Types.Quantity.deserialize()
+             |> Result.map_err(&"Failed to parse field r of Transaction: #{&1}"),
            {:ok, s} <-
-             EthereumApi.Types.Quantity.deserialize(transaction["s"])
-             |> Result.map_err(fn err -> "Failed to parse field s of Transaction: #{err}" end) do
+             transaction["s"]
+             |> EthereumApi.Types.Quantity.deserialize()
+             |> Result.map_err(&"Failed to parse field s of Transaction: #{&1}") do
         {:ok,
          %__MODULE__{
            block_hash: block_hash,
