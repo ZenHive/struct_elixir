@@ -9,6 +9,13 @@ defmodule Types do
 
     def deserialize(value) when is_integer(value), do: {:ok, value}
     def deserialize(value), do: {:error, "Invalid integer (#{inspect(value)})"}
+
+    def deserialize!(value) do
+      case deserialize(value) do
+        {:ok, value} -> value
+        {:error, _} -> raise ArgumentError, "Expected integer, got #{inspect(value)}"
+      end
+    end
   end
 
   defmodule Str do
@@ -25,6 +32,13 @@ defmodule Types do
     def deserialize(value) do
       {:error, "Invalid string (#{inspect(value)})"}
     end
+
+    def deserialize!(value) do
+      case deserialize(value) do
+        {:ok, value} -> value
+        {:error, _} -> raise ArgumentError, "Expected string, got #{inspect(value)}"
+      end
+    end
   end
 
   defmodule Bool do
@@ -32,6 +46,13 @@ defmodule Types do
 
     def deserialize(value) when value in [true, false], do: {:ok, value}
     def deserialize(value), do: {:error, "Invalid boolean (#{inspect(value)})"}
+
+    def deserialize!(value) do
+      case deserialize(value) do
+        {:ok, value} -> value
+        {:error, _} -> raise ArgumentError, "Expected boolean, got #{inspect(value)}"
+      end
+    end
   end
 
   defmodule Float do
@@ -39,5 +60,12 @@ defmodule Types do
 
     def deserialize(value) when is_float(value), do: {:ok, value}
     def deserialize(value), do: {:error, "Invalid float (#{inspect(value)})"}
+
+    def deserialize!(value) do
+      case deserialize(value) do
+        {:ok, value} -> value
+        {:error, _} -> raise ArgumentError, "Expected float, got #{inspect(value)}"
+      end
+    end
   end
 end

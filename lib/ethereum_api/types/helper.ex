@@ -55,6 +55,21 @@ defmodule EthereumApi.Types.Helper do
                 raise ArgumentError, "Expected a Data#{unquote(size)}, found #{inspect(value)}"
             end
           end
+
+          def deserialize_list(list) when is_list(list) do
+            Enum.reduce_while(list, {:ok, []}, fn value, {_, acc} ->
+              case deserialize(value) do
+                {:ok, value} ->
+                  {:cont, {:ok, [value | acc]}}
+
+                {:error, _} ->
+                  {:halt, {:error, "Expected a list of Data#{unquote(size)}"}}
+              end
+            end)
+            |> Result.map(&Enum.reverse/1)
+          end
+
+          def deserialize_list(_), do: {:error, "Expected a list of Data#{unquote(size)}"}
         end
       end
 

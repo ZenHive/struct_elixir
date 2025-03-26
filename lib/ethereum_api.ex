@@ -16,7 +16,7 @@ defmodule EthereumApi do
           # Parameters
           - data: The data to convert into a SHA3 hash
         """,
-        args: {data, EthereumApi.Types.Hexadecimal.t()},
+        args: {data, EthereumApi.Types.Data.t()},
         args_transformer!: &EthereumApi.Types.Data.deserialize!/1,
         response_type: {:type_alias, String.t()},
         response_parser: &EthereumApi.Types.Data.deserialize/1
@@ -515,6 +515,33 @@ defmodule EthereumApi do
         end,
         response_type: {:type_alias, EthereumApi.Types.Wei.t()},
         response_parser: &EthereumApi.Types.Wei.deserialize/1
+      },
+      %{
+        method: "eth_getBlockByHash",
+        doc: """
+          Returns information about a block by hash.
+
+          # Parameters
+          - block_hash: The hash of the block to retrieve
+          - full_transaction_objects?: If true, returns the full transaction objects, if false only the transaction hashes
+        """,
+        args: [
+          {block_hash, EthereumApi.Types.Data32.t()},
+          {full_transaction_objects?, Types.Bool.t()}
+        ],
+        args_transformer!: fn block_hash, full_transaction_objects? ->
+          [
+            EthereumApi.Types.Data32.deserialize!(block_hash),
+            Types.Bool.deserialize!(full_transaction_objects?)
+          ]
+        end,
+        response_type: {:type_alias, EthereumApi.Types.Block.t() | nil},
+        response_parser: fn response ->
+          EthereumApi.Support.Deserializer.deserialize_optional(
+            response,
+            &EthereumApi.Types.Block.deserialize/1
+          )
+        end
       }
     ]
   }
