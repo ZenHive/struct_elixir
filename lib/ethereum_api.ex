@@ -471,7 +471,7 @@ defmodule EthereumApi do
     ]
   }
 
-  def create_transaction_object!(transaction, opts) do
+  defp create_transaction_object!(transaction, opts) do
     Enum.reduce(opts, transaction, fn {opt, value}, acc ->
       value =
         cond do
