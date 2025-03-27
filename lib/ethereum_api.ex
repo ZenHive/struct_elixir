@@ -588,6 +588,33 @@ defmodule EthereumApi do
             &EthereumApi.Types.Transaction.deserialize/1
           )
         end
+      },
+      %{
+        method: "eth_getTransactionByBlockHashAndIndex",
+        doc: """
+          Returns information about a transaction by block hash and transaction index position.
+
+          # Parameters
+          - block_hash: Hash of a block
+          - transaction_index: Integer of the transaction index position
+        """,
+        args: [
+          {block_hash, EthereumApi.Types.Data32.t()},
+          {transaction_index, EthereumApi.Types.Quantity.t()}
+        ],
+        args_transformer!: fn block_hash, transaction_index ->
+          [
+            EthereumApi.Types.Data32.deserialize!(block_hash),
+            EthereumApi.Types.Quantity.deserialize!(transaction_index)
+          ]
+        end,
+        response_type: {:type_alias, Option.t(EthereumApi.Types.Transaction.t())},
+        response_parser: fn response ->
+          EthereumApi.Support.Deserializer.deserialize_optional(
+            response,
+            &EthereumApi.Types.Transaction.deserialize/1
+          )
+        end
       }
     ]
   }
