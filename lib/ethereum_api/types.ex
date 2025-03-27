@@ -438,4 +438,256 @@ defmodule EthereumApi.Types do
       {:error, "Expected a map for transaction data, got #{inspect(value)}"}
     end
   end
+
+  defmodule TransactionReceipt do
+    alias EthereumApi.Support.Deserializer
+
+    defmodule TransactionStatus do
+      @type t :: :success | :failure | {:pre_byzantium, EthereumApi.Types.Data32.t()}
+
+      def deserialize(status, nil) do
+        case status do
+          "0x1" ->
+            {:ok, :success}
+
+          "0x0" ->
+            {:ok, :failure}
+
+          _ ->
+            {:error, "Invalid TransactionStatus: Invalid status: #{inspect(status)}"}
+        end
+      end
+
+      def deserialize(nil, root) do
+        with {:ok, root} <-
+               EthereumApi.Types.Data32.deserialize(root)
+               |> Result.map_err(&"Invalid TransactionStatus: Invalid root: #{&1}") do
+          {:ok, {:pre_byzantium, root}}
+        end
+      end
+
+      def deserialize(status, root) do
+        {:error, "Invalid TransactionStatus: status(#{inspect(status)}), root(#{inspect(root)})"}
+      end
+    end
+
+    defmodule Log do
+      alias EthereumApi.Support.Deserializer
+
+      @struct_fields [
+        :removed,
+        :log_index,
+        :transaction_index,
+        :transaction_hash,
+        :block_hash,
+        :block_number,
+        :address,
+        :data,
+        :topics
+      ]
+      @enforce_keys @struct_fields
+      defstruct @struct_fields
+
+      @type t :: %__MODULE__{
+              removed: boolean(),
+              log_index: EthereumApi.Types.Quantity.t(),
+              transaction_index: EthereumApi.Types.Quantity.t(),
+              transaction_hash: EthereumApi.Types.Data32.t(),
+              block_hash: EthereumApi.Types.Data32.t(),
+              block_number: EthereumApi.Types.Quantity.t(),
+              address: EthereumApi.Types.Data20.t(),
+              data: EthereumApi.Types.Data.t(),
+              topics: [EthereumApi.Types.Data32.t()]
+            }
+
+      @spec deserialize(term()) :: Result.t(t(), String.t())
+      def deserialize(log) when is_map(log) do
+        with {:ok, removed} <-
+               log["removed"]
+               |> Types.Bool.deserialize()
+               |> Result.map_err(&"Failed to parse field removed of Log: #{&1}"),
+             {:ok, log_index} <-
+               log["logIndex"]
+               |> EthereumApi.Types.Quantity.deserialize()
+               |> Result.map_err(&"Failed to parse field log_index of Log: #{&1}"),
+             {:ok, transaction_index} <-
+               log["transactionIndex"]
+               |> EthereumApi.Types.Quantity.deserialize()
+               |> Result.map_err(&"Failed to parse field transaction_index of Log: #{&1}"),
+             {:ok, transaction_hash} <-
+               log["transactionHash"]
+               |> EthereumApi.Types.Data32.deserialize()
+               |> Result.map_err(&"Failed to parse field transaction_hash of Log: #{&1}"),
+             {:ok, block_hash} <-
+               log["blockHash"]
+               |> EthereumApi.Types.Data32.deserialize()
+               |> Result.map_err(&"Failed to parse field block_hash of Log: #{&1}"),
+             {:ok, block_number} <-
+               log["blockNumber"]
+               |> EthereumApi.Types.Quantity.deserialize()
+               |> Result.map_err(&"Failed to parse field block_number of Log: #{&1}"),
+             {:ok, address} <-
+               log["address"]
+               |> EthereumApi.Types.Data20.deserialize()
+               |> Result.map_err(&"Failed to parse field address of Log: #{&1}"),
+             {:ok, data} <-
+               log["data"]
+               |> EthereumApi.Types.Data.deserialize()
+               |> Result.map_err(&"Failed to parse field data of Log: #{&1}"),
+             {:ok, topics} <-
+               log["topics"]
+               |> EthereumApi.Types.Data32.deserialize_list()
+               |> Result.map_err(&"Failed to parse field topics of Log: #{&1}") do
+          {:ok,
+           %__MODULE__{
+             removed: removed,
+             log_index: log_index,
+             transaction_index: transaction_index,
+             transaction_hash: transaction_hash,
+             block_hash: block_hash,
+             block_number: block_number,
+             address: address,
+             data: data,
+             topics: topics
+           }}
+        end
+      end
+
+      def deserialize(value) do
+        {:error, "Expected a map for log data, got #{inspect(value)}"}
+      end
+
+      def deserialize_list(list) do
+        EthereumApi.Support.Deserializer.deserialize_list(list, &deserialize/1)
+        |> Result.map_err(&"Expected list of logs, got #{inspect(&1)}")
+      end
+    end
+
+    @struct_fields [
+      :transaction_hash,
+      :transaction_index,
+      :block_hash,
+      :block_number,
+      :from,
+      :to,
+      :cumulative_gas_used,
+      :effective_gas_price,
+      :gas_used,
+      :contract_address,
+      :logs,
+      :logs_bloom,
+      :type,
+      :status
+    ]
+    @enforce_keys @struct_fields
+    defstruct @struct_fields
+
+    @type t :: %__MODULE__{
+            transaction_hash: EthereumApi.Types.Data32.t(),
+            transaction_index: EthereumApi.Types.Quantity.t(),
+            block_hash: EthereumApi.Types.Data32.t(),
+            block_number: EthereumApi.Types.Quantity.t(),
+            from: EthereumApi.Types.Data20.t(),
+            to: Option.t(EthereumApi.Types.Data20.t()),
+            cumulative_gas_used: EthereumApi.Types.Quantity.t(),
+            effective_gas_price: EthereumApi.Types.Quantity.t(),
+            gas_used: EthereumApi.Types.Quantity.t(),
+            contract_address: Option.t(EthereumApi.Types.Data20.t()),
+            logs: [Log.t()],
+            logs_bloom: EthereumApi.Types.Data256.t(),
+            type: EthereumApi.Types.Quantity.t(),
+            status: TransactionStatus.t()
+          }
+
+    @spec deserialize(term()) :: Result.t(t(), String.t())
+    def deserialize(receipt) when is_map(receipt) do
+      with {:ok, transaction_hash} <-
+             receipt["transactionHash"]
+             |> EthereumApi.Types.Data32.deserialize()
+             |> Result.map_err(
+               &"Failed to parse field transaction_hash of TransactionReceipt: #{&1}"
+             ),
+           {:ok, transaction_index} <-
+             receipt["transactionIndex"]
+             |> EthereumApi.Types.Quantity.deserialize()
+             |> Result.map_err(
+               &"Failed to parse field transaction_index of TransactionReceipt: #{&1}"
+             ),
+           {:ok, block_hash} <-
+             receipt["blockHash"]
+             |> EthereumApi.Types.Data32.deserialize()
+             |> Result.map_err(&"Failed to parse field block_hash of TransactionReceipt: #{&1}"),
+           {:ok, block_number} <-
+             receipt["blockNumber"]
+             |> EthereumApi.Types.Quantity.deserialize()
+             |> Result.map_err(&"Failed to parse field block_number of TransactionReceipt: #{&1}"),
+           {:ok, from} <-
+             receipt["from"]
+             |> EthereumApi.Types.Data20.deserialize()
+             |> Result.map_err(&"Failed to parse field from of TransactionReceipt: #{&1}"),
+           {:ok, to} <-
+             receipt["to"]
+             |> Deserializer.deserialize_optional(&EthereumApi.Types.Data20.deserialize/1)
+             |> Result.map_err(&"Failed to parse field to of TransactionReceipt: #{&1}"),
+           {:ok, cumulative_gas_used} <-
+             receipt["cumulativeGasUsed"]
+             |> EthereumApi.Types.Quantity.deserialize()
+             |> Result.map_err(
+               &"Failed to parse field cumulative_gas_used of TransactionReceipt: #{&1}"
+             ),
+           {:ok, effective_gas_price} <-
+             receipt["effectiveGasPrice"]
+             |> EthereumApi.Types.Quantity.deserialize()
+             |> Result.map_err(
+               &"Failed to parse field effective_gas_price of TransactionReceipt: #{&1}"
+             ),
+           {:ok, gas_used} <-
+             receipt["gasUsed"]
+             |> EthereumApi.Types.Quantity.deserialize()
+             |> Result.map_err(&"Failed to parse field gas_used of TransactionReceipt: #{&1}"),
+           {:ok, contract_address} <-
+             receipt["contractAddress"]
+             |> Deserializer.deserialize_optional(&EthereumApi.Types.Data20.deserialize/1)
+             |> Result.map_err(
+               &"Failed to parse field contract_address of TransactionReceipt: #{&1}"
+             ),
+           {:ok, logs} <-
+             receipt["logs"]
+             |> Log.deserialize_list()
+             |> Result.map_err(&"Failed to parse field logs of TransactionReceipt: #{&1}"),
+           {:ok, logs_bloom} <-
+             receipt["logsBloom"]
+             |> EthereumApi.Types.Data256.deserialize()
+             |> Result.map_err(&"Failed to parse field logs_bloom of TransactionReceipt: #{&1}"),
+           {:ok, type} <-
+             receipt["type"]
+             |> EthereumApi.Types.Quantity.deserialize()
+             |> Result.map_err(&"Failed to parse field type of TransactionReceipt: #{&1}"),
+           {:ok, status} <-
+             TransactionStatus.deserialize(receipt["status"], receipt["root"])
+             |> Result.map_err(&"Failed to parse field status of TransactionReceipt: #{&1}") do
+        {:ok,
+         %__MODULE__{
+           transaction_hash: transaction_hash,
+           transaction_index: transaction_index,
+           block_hash: block_hash,
+           block_number: block_number,
+           from: from,
+           to: to,
+           cumulative_gas_used: cumulative_gas_used,
+           effective_gas_price: effective_gas_price,
+           gas_used: gas_used,
+           contract_address: contract_address,
+           logs: logs,
+           logs_bloom: logs_bloom,
+           type: type,
+           status: status
+         }}
+      end
+    end
+
+    def deserialize(value) do
+      {:error, "Expected a map for transaction receipt data, got #{inspect(value)}"}
+    end
+  end
 end

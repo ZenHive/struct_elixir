@@ -17,4 +17,18 @@ defmodule EthereumApi.Support.Deserializer do
           Result.t(Option.t(any()), any())
   def deserialize_optional(nil, _deserializer), do: {:ok, nil}
   def deserialize_optional(value, deserializer), do: deserializer.(value)
+
+  @spec deserialize_list(any(), (any() -> Result.t(any(), any()))) :: Result.t(list(), any())
+  def deserialize_list(list, deserializer) when is_list(list) do
+    Enum.reduce_while(list, {:ok, []}, fn value, {:ok, acc} ->
+      case deserializer.(value) do
+        {:ok, value} -> {:cont, {:ok, [value | acc]}}
+        {:error, _} -> {:halt, {:error, "Failed to parse elem #{inspect(value)}"}}
+      end
+    end)
+    |> Result.map(&Enum.reverse/1)
+  end
+
+  def deserialize_list(value, _deserializer),
+    do: {:error, "Expected a list, got #{inspect(value)}"}
 end

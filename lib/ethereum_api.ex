@@ -643,6 +643,29 @@ defmodule EthereumApi do
             &EthereumApi.Types.Transaction.deserialize/1
           )
         end
+      },
+      %{
+        method: "eth_getTransactionReceipt",
+        doc: """
+          Returns the receipt of a transaction by transaction hash.
+
+          Note that the receipt is not available for pending transactions.
+
+          # Parameters
+          - transaction_hash: Hash of a transaction
+
+          # Returns
+          - Option.t(TransactionReceipt.t()) - A transaction receipt object, or nil when no receipt was found
+        """,
+        args: {transaction_hash, EthereumApi.Types.Data32.t()},
+        args_transformer!: &EthereumApi.Types.Data32.deserialize!/1,
+        response_type: {:type_alias, Option.t(EthereumApi.Types.TransactionReceipt.t())},
+        response_parser: fn response ->
+          EthereumApi.Support.Deserializer.deserialize_optional(
+            response,
+            &EthereumApi.Types.TransactionReceipt.deserialize/1
+          )
+        end
       }
     ]
   }
