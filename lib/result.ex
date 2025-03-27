@@ -221,6 +221,22 @@ defmodule Result do
   def unwrap_err!(result), do: raise("Result.unwrap_err!() called with result #{inspect(result)}")
 
   @doc """
+  Returns the result of applying a function to the contained value if Ok.
+  Returns the original result if Err.
+
+  ## Examples
+      iex> Result.and_then({:ok, 42}, &({:ok, &1 + 1}))
+      {:ok, 43}
+      iex> Result.and_then({:ok, 42}, &({:error, &1 + 1}))
+      {:error, 43}
+      iex> Result.and_then({:error, 42}, &({:ok, &1 + 1}))
+      {:error, 42}
+  """
+  @spec and_then(t(ok, err), (ok -> t(new_ok, err))) :: t(new_ok, err)
+  def and_then({:ok, value}, f), do: f.(value)
+  def and_then(result, _f), do: result
+
+  @doc """
   Returns the contained Ok value or a default
 
   Arguments passed to unwrap_or are eagerly evaluated; if you are passing the result of a function call, it is recommended to use unwrap_or_else, which is lazily evaluated.

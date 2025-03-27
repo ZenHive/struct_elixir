@@ -504,7 +504,7 @@ defmodule EthereumApi.Types do
       def deserialize(log) when is_map(log) do
         with {:ok, removed} <-
                log["removed"]
-               |> Types.Bool.deserialize()
+               |> Types.Bool.from_term()
                |> Result.map_err(&"Failed to parse field removed of Log: #{&1}"),
              {:ok, log_index} <-
                log["logIndex"]

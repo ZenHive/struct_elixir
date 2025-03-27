@@ -6,7 +6,7 @@ defmodule EthereumApi do
         method: "web3_clientVersion",
         doc: "Returns the current client version.",
         response_type: {:type_alias, String.t()},
-        response_parser: &Types.Str.deserialize/1
+        response_parser: &Types.Str.from_term/1
       },
       %{
         method: "web3_sha3",
@@ -25,13 +25,13 @@ defmodule EthereumApi do
         method: "net_version",
         doc: "Returns the current network id.",
         response_type: {:type_alias, String.t()},
-        response_parser: &Types.Str.deserialize/1
+        response_parser: &Types.Str.from_term/1
       },
       %{
         method: "net_listening",
         doc: "Returns true if client is actively listening for network connections.",
         response_type: {:type_alias, Types.Bool.t()},
-        response_parser: &Types.Bool.deserialize/1
+        response_parser: &Types.Bool.from_term/1
       },
       %{
         method: "net_peerCount",
@@ -48,7 +48,7 @@ defmodule EthereumApi do
           (see https://github.com/ethereum/go-ethereum/pull/22064#issuecomment-788682924).
         """,
         response_type: {:type_alias, String.t()},
-        response_parser: &Types.Str.deserialize/1
+        response_parser: &Types.Str.from_term/1
       },
       %{
         method: "eth_syncing",
@@ -76,7 +76,7 @@ defmodule EthereumApi do
           clients since The Merge.
         """,
         response_type: {:type_alias, Types.Bool.t()},
-        response_parser: &Types.Bool.deserialize/1
+        response_parser: &Types.Bool.from_term/1
       },
       %{
         method: "eth_hashrate",
@@ -532,7 +532,7 @@ defmodule EthereumApi do
         args_transformer!: fn block_hash, full_transaction_objects? ->
           [
             EthereumApi.Types.Data32.deserialize!(block_hash),
-            Types.Bool.deserialize!(full_transaction_objects?)
+            Types.Bool.from_term!(full_transaction_objects?)
           ]
         end,
         response_type: {:type_alias, Option.t(EthereumApi.Types.Block.t())},
@@ -560,7 +560,7 @@ defmodule EthereumApi do
         args_transformer!: fn block_number_or_tag, full_transaction_objects? ->
           [
             deserialize_quantity_or_tag!(block_number_or_tag),
-            Types.Bool.deserialize!(full_transaction_objects?)
+            Types.Bool.from_term!(full_transaction_objects?)
           ]
         end,
         response_type: {:type_alias, Option.t(EthereumApi.Types.Block.t())},
