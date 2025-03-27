@@ -535,7 +535,35 @@ defmodule EthereumApi do
             Types.Bool.deserialize!(full_transaction_objects?)
           ]
         end,
-        response_type: {:type_alias, EthereumApi.Types.Block.t() | nil},
+        response_type: {:type_alias, Option.t(EthereumApi.Types.Block.t())},
+        response_parser: fn response ->
+          EthereumApi.Support.Deserializer.deserialize_optional(
+            response,
+            &EthereumApi.Types.Block.deserialize/1
+          )
+        end
+      },
+      %{
+        method: "eth_getBlockByNumber",
+        doc: """
+          Returns information about a block by block number.
+
+          # Parameters
+          - block_number_or_tag: Integer block number, or one of the following strings
+            #{inspect(EthereumApi.Types.Tag.tags())}
+          - full_transaction_objects?: If true, returns the full transaction objects, if false only the transaction hashes
+        """,
+        args: [
+          {block_number_or_tag, EthereumApi.Types.Quantity.t() | EthereumApi.Types.Tag.t()},
+          {full_transaction_objects?, Types.Bool.t()}
+        ],
+        args_transformer!: fn block_number_or_tag, full_transaction_objects? ->
+          [
+            deserialize_quantity_or_tag!(block_number_or_tag),
+            Types.Bool.deserialize!(full_transaction_objects?)
+          ]
+        end,
+        response_type: {:type_alias, Option.t(EthereumApi.Types.Block.t())},
         response_parser: fn response ->
           EthereumApi.Support.Deserializer.deserialize_optional(
             response,
