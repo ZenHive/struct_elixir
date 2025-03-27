@@ -570,6 +570,24 @@ defmodule EthereumApi do
             &EthereumApi.Types.Block.deserialize/1
           )
         end
+      },
+      %{
+        method: "eth_getTransactionByHash",
+        doc: """
+          Returns the information about a transaction requested by transaction hash.
+
+          # Parameters
+          - transaction_hash: Hash of a transaction
+        """,
+        args: {transaction_hash, EthereumApi.Types.Data32.t()},
+        args_transformer!: &EthereumApi.Types.Data32.deserialize!/1,
+        response_type: {:type_alias, Option.t(EthereumApi.Types.Transaction.t())},
+        response_parser: fn response ->
+          EthereumApi.Support.Deserializer.deserialize_optional(
+            response,
+            &EthereumApi.Types.Transaction.deserialize/1
+          )
+        end
       }
     ]
   }
