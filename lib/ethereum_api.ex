@@ -725,6 +725,18 @@ defmodule EthereumApi do
         args_transformer!: &create_filter_options_obect!/1,
         response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
         response_parser: &EthereumApi.Types.Quantity.from_term/1
+      },
+      %{
+        method: "eth_newBlockFilter",
+        doc: """
+          Creates a filter in the node, to notify when a new block arrives.
+          To check if the state has changed, call eth_getFilterChanges.
+
+          # Returns
+          - Quantity - A filter id
+        """,
+        response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
+        response_parser: &EthereumApi.Types.Quantity.from_term/1
       }
     ]
   }
