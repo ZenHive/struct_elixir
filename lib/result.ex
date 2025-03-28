@@ -59,7 +59,7 @@ defmodule Result do
       false
   """
   @spec is_err_and?(t(ok, err), (err -> boolean)) :: boolean
-  def is_err_and?({:error, value}, f), do: f.(value)
+  def is_err_and?({:error, err}, f), do: f.(err)
   def is_err_and?(_, _f), do: false
 
   @doc """
@@ -101,7 +101,7 @@ defmodule Result do
   """
   @spec map_or_else(t(ok, err), (err -> new_ok), (ok -> new_ok)) :: new_ok
   def map_or_else({:ok, value}, _f_default, f), do: f.(value)
-  def map_or_else({:error, value}, f_default, _f), do: f_default.(value)
+  def map_or_else({:error, err}, f_default, _f), do: f_default.(err)
 
   @doc """
   Maps a Result.t(ok, err) to Result.t(ok, new_err) by applying a function to a contained Err value, leaving an Ok value untouched.
@@ -113,7 +113,7 @@ defmodule Result do
       {:error, 43}
   """
   @spec map_err(t(ok, err), (err -> new_err)) :: t(ok, new_err)
-  def map_err({:error, value}, f), do: {:error, f.(value)}
+  def map_err({:error, err}, f), do: {:error, f.(err)}
   def map_err(result, _f), do: result
 
   @doc """
@@ -161,8 +161,8 @@ defmodule Result do
       "42\\n"
   """
   @spec inspect_err(t(ok, err), (err -> any)) :: t(ok, err)
-  def inspect_err({:error, value} = result, f) do
-    f.(value)
+  def inspect_err({:error, err} = result, f) do
+    f.(err)
     result
   end
 
@@ -172,14 +172,14 @@ defmodule Result do
   Returns the contained Ok value or raise msg
 
   ## Examples
-      iex> Result.expect!({:ok, 42}, "Error")
+      iex> Result.expect!({:ok, 42}, "Foo")
       42
-      iex> Result.expect!({:error, 42}, "Error")
-      ** (RuntimeError) Error
+      iex> Result.expect!({:error, 42}, "Foo")
+      ** (RuntimeError) Foo: 42
   """
   @spec expect!(t(ok, err), String.t()) :: ok
   def expect!({:ok, value}, _msg), do: value
-  def expect!(_result, msg), do: raise(msg)
+  def expect!({:error, err}, msg), do: raise("#{msg}: #{inspect(err)}")
 
   @doc """
   Returns the contained Ok value or raises an error
@@ -198,14 +198,14 @@ defmodule Result do
   Returns the contained Err value or raise msg
 
   ## Examples
-      iex> Result.expect_err!({:error, 42}, "Error")
+      iex> Result.expect_err!({:error, 42}, "Foo")
       42
-      iex> Result.expect_err!({:ok, 42}, "Error")
-      ** (RuntimeError) Error
+      iex> Result.expect_err!({:ok, 42}, "Foo")
+      ** (RuntimeError) Foo: 42
   """
   @spec expect_err!(t(ok, err), String.t()) :: err
-  def expect_err!({:error, value}, _msg), do: value
-  def expect_err!(_result, msg), do: raise(msg)
+  def expect_err!({:error, err}, _msg), do: err
+  def expect_err!({:ok, value}, msg), do: raise("#{msg}: #{inspect(value)}")
 
   @doc """
   Returns the contained Err value or raises an error
@@ -217,7 +217,7 @@ defmodule Result do
       ** (RuntimeError) Result.unwrap_err!() called with result {:ok, 42}
   """
   @spec unwrap_err!(t(ok, err)) :: err
-  def unwrap_err!({:error, value}), do: value
+  def unwrap_err!({:error, err}), do: err
   def unwrap_err!(result), do: raise("Result.unwrap_err!() called with result #{inspect(result)}")
 
   @doc """
@@ -262,5 +262,41 @@ defmodule Result do
   """
   @spec unwrap_or_else(t(ok, err), (err -> ok)) :: ok
   def unwrap_or_else({:ok, value}, _f_default), do: value
-  def unwrap_or_else({:error, value}, f_default), do: f_default.(value)
+  def unwrap_or_else({:error, err}, f_default), do: f_default.(err)
+
+  @doc """
+  Reduces a list while handling errors using Result types.
+
+  This function is similar to Enum.reduce/3 but works with Result types. It will continue
+  reducing until either:
+  1. The list is exhausted (returns {:ok, final_acc})
+  2. The reducer function returns an error (returns {:error, error})
+
+  ## Parameters
+    - list: The list to reduce over
+    - acc: The initial accumulator value
+    - f: A function that takes an element and accumulator, returning {:ok, new_acc} or {:error, error}
+
+  ## Examples
+      iex> Result.try_reduce([1, 2, 3], 0, fn x, acc -> {:ok, acc + x} end)
+      {:ok, 6}
+
+      iex> Result.try_reduce([1, 2, 3], 0, fn x, acc ->
+      ...>   if x == 2, do: {:error, "found 2"}, else: {:ok, acc + x}
+      ...> end)
+      {:error, "found 2"}
+
+      iex> Result.try_reduce([], 42, fn _x, acc -> {:ok, acc} end)
+      {:ok, 42}
+  """
+  @spec try_reduce(list(any()), any(), (any(), any() -> Result.t(any(), any()))) ::
+          Result.t(any(), any())
+  def try_reduce(list, acc, f) do
+    Enum.reduce_while(list, {:ok, acc}, fn elem, {:ok, acc} ->
+      case f.(elem, acc) do
+        {:ok, acc} -> {:cont, {:ok, acc}}
+        {:error, error} -> {:halt, {:error, error}}
+      end
+    end)
+  end
 end

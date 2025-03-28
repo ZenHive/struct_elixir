@@ -1,7 +1,7 @@
 defmodule Types do
   @moduledoc """
-  `Types` is a module that provides a set of modules used by JsonStruct to validate and deserialize
-  see `JsonStruct` for more information.
+  `Types` is a module that provides a set of modules used by the `Struct` module
+  see `Struct` for more information.
   """
 
   defmodule Int do

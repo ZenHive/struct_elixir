@@ -1,4 +1,4 @@
-defmodule EthereumApi.Types.Helper do
+defmodule EthereumApi.Types.Support do
   @moduledoc false
 
   defmacro def_data_module(size, debug \\ false) do
@@ -22,17 +22,17 @@ defmodule EthereumApi.Types.Helper do
         defmodule unquote(module_name) do
           @type t :: String.t()
 
-          def deserialize(value) when is_binary(value) do
+          def from_term(value) when is_binary(value) do
             if is_data?(value) do
               {:ok, value}
             else
-              deserialize_error(value)
+              from_term_error(value)
             end
           end
 
-          def deserialize(value), do: deserialize_error(value)
+          def from_term(value), do: from_term_error(value)
 
-          defp deserialize_error(value),
+          defp from_term_error(value),
             do: {:error, "Invalid Data#{unquote(size)}: #{inspect(value)}"}
 
           def is_data?(value) when is_binary(value) do
@@ -45,9 +45,9 @@ defmodule EthereumApi.Types.Helper do
 
           def is_data?(_), do: false
 
-          @spec deserialize!(any()) :: t()
-          def deserialize!(value) do
-            case deserialize(value) do
+          @spec from_term!(any()) :: t()
+          def from_term!(value) do
+            case from_term(value) do
               {:ok, value} ->
                 value
 
@@ -56,9 +56,9 @@ defmodule EthereumApi.Types.Helper do
             end
           end
 
-          def deserialize_list(list) when is_list(list) do
+          def from_term_list(list) when is_list(list) do
             Enum.reduce_while(list, {:ok, []}, fn value, {_, acc} ->
-              case deserialize(value) do
+              case from_term(value) do
                 {:ok, value} ->
                   {:cont, {:ok, [value | acc]}}
 
@@ -69,7 +69,7 @@ defmodule EthereumApi.Types.Helper do
             |> Result.map(&Enum.reverse/1)
           end
 
-          def deserialize_list(_), do: {:error, "Expected a list of Data#{unquote(size)}"}
+          def from_term_list(_), do: {:error, "Expected a list of Data#{unquote(size)}"}
         end
       end
 

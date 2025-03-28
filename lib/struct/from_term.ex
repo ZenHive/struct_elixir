@@ -9,7 +9,7 @@ defmodule Struct.FromTerm do
           with unquote_splicing(
                  for {field, opts} <- fields do
                    quote do
-                     {:ok, unquote(Macro.var(field, __MODULE__))} <-
+                     {:ok, unquote(get_field_var(field, __MODULE__))} <-
                        data
                        |> Struct.FromTerm.get_value(unquote(field), unquote(opts))
                        |> Struct.FromTerm.parse_field(unquote(opts))
@@ -25,7 +25,7 @@ defmodule Struct.FromTerm do
                 unquote_splicing(
                   for {field, _opts} <- fields do
                     quote do
-                      {unquote(field), unquote(Macro.var(field, __MODULE__))}
+                      {unquote(field), unquote(get_field_var(field, __MODULE__))}
                     end
                   end
                 )
@@ -37,6 +37,27 @@ defmodule Struct.FromTerm do
         def from_term(value) do
           {:error, "Expected a map for #{unquote(caller_module)} data, got #{inspect(value)}"}
         end
+
+        def from_term!(value) do
+          from_term(value)
+          |> Result.unwrap!()
+        end
+
+        def from_term_list(list) when is_list(list) do
+          Result.try_reduce(list, [], fn elem, acc ->
+            from_term(elem)
+            |> Result.map(&[&1 | acc])
+          end)
+          |> Result.map(&Enum.reverse/1)
+          |> Result.map_err(&"Failed to parse list of #{unquote(caller_module)}: #{&1}")
+        end
+
+        def from_term_list(value) do
+          {:error,
+           "Failed to parse list of #{unquote(caller_module)}, expected a list got #{inspect(value)}"}
+        end
+
+        def from_term_optional(value), do: Option.map(value, &from_term/1)
       end
 
     if debug? do
@@ -51,17 +72,19 @@ defmodule Struct.FromTerm do
     ast
   end
 
+  defp get_field_var(field, module) do
+    Macro.var(:"field_#{field}", module)
+  end
+
   def get_value(map, field_name, opts) when is_list(opts) do
-    opts
-    |> Keyword.get(:"Struct.FromTerm")
-    |> case do
-      nil -> map[field_name]
-      keys -> keys |> List.wrap() |> Enum.find_value(nil, fn key -> map[key] end)
-    end
+    map[field_name] ||
+      opts
+      |> Keyword.get(:"Struct.FromTerm")
+      |> Option.map(&(&1 |> List.wrap() |> Enum.find_value(fn key -> map[key] end)))
   end
 
   def get_value(map, field_name, _type) do
-    map[field_name]
+    map[field_name] || map[Atom.to_string(field_name)]
   end
 
   def parse_field(value, opts) when is_list(opts) do
@@ -79,14 +102,10 @@ defmodule Struct.FromTerm do
   end
 
   defp do_parse_field(value, {:list, type}) when is_list(value) do
-    Enum.reduce_while(value, {:ok, []}, fn elem, {:ok, acc} ->
-      case do_parse_field(elem, type) do
-        {:ok, elem} ->
-          {:cont, {:ok, [elem | acc]}}
-
-        {:error, error} ->
-          {:halt, {:error, "Failed to parse list elem #{inspect(elem)}: #{error}"}}
-      end
+    Result.try_reduce(value, [], fn elem, acc ->
+      do_parse_field(elem, type)
+      |> Result.map(&[&1 | acc])
+      |> Result.map_err(&"Failed to parse list elem #{inspect(elem)}: #{&1}")
     end)
     |> Result.map(&Enum.reverse/1)
   end

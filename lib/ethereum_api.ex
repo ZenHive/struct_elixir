@@ -17,9 +17,9 @@ defmodule EthereumApi do
           - data: The data to convert into a SHA3 hash
         """,
         args: {data, EthereumApi.Types.Data.t()},
-        args_transformer!: &EthereumApi.Types.Data.deserialize!/1,
+        args_transformer!: &EthereumApi.Types.Data.from_term!/1,
         response_type: {:type_alias, String.t()},
-        response_parser: &EthereumApi.Types.Data.deserialize/1
+        response_parser: &EthereumApi.Types.Data.from_term/1
       },
       %{
         method: "net_version",
@@ -37,7 +37,7 @@ defmodule EthereumApi do
         method: "net_peerCount",
         doc: "Returns number of peers currently connected to the client.",
         response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
-        response_parser: &EthereumApi.Types.Quantity.deserialize/1
+        response_parser: &EthereumApi.Types.Quantity.from_term/1
       },
       %{
         method: "eth_protocolVersion",
@@ -59,14 +59,14 @@ defmodule EthereumApi do
             {:ok, false}
 
           response ->
-            EthereumApi.Types.Syncing.deserialize(response)
+            EthereumApi.Types.Syncing.from_term(response)
         end
       },
       %{
         method: "eth_chainId",
         doc: "Returns the chain ID used for signing replay-protected transactions.",
         response_type: {:type_alias, EthereumApi.Types.Data.t()},
-        response_parser: &EthereumApi.Types.Data.deserialize/1
+        response_parser: &EthereumApi.Types.Data.from_term/1
       },
       %{
         method: "eth_mining",
@@ -86,7 +86,7 @@ defmodule EthereumApi do
           clients since The Merge.
         """,
         response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
-        response_parser: &EthereumApi.Types.Quantity.deserialize/1
+        response_parser: &EthereumApi.Types.Quantity.from_term/1
       },
       %{
         method: "eth_gasPrice",
@@ -96,7 +96,7 @@ defmodule EthereumApi do
           price by default.
         """,
         response_type: {:type_alias, EthereumApi.Types.Wei.t()},
-        response_parser: &EthereumApi.Types.Wei.deserialize/1
+        response_parser: &EthereumApi.Types.Wei.from_term/1
       },
       %{
         method: "eth_accounts",
@@ -106,7 +106,7 @@ defmodule EthereumApi do
           list when is_list(list) ->
             result =
               Enum.reduce_while(list, {:ok, []}, fn elem, acc ->
-                case EthereumApi.Types.Data20.deserialize(elem) do
+                case EthereumApi.Types.Data20.from_term(elem) do
                   {:ok, data} ->
                     {:cont, {:ok, [data | elem(acc, 1)]}}
 
@@ -127,7 +127,7 @@ defmodule EthereumApi do
         method: "eth_blockNumber",
         doc: "Returns the number of the most recent block.",
         response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
-        response_parser: &EthereumApi.Types.Quantity.deserialize/1
+        response_parser: &EthereumApi.Types.Quantity.from_term/1
       },
       %{
         method: "eth_getBalance",
@@ -145,12 +145,12 @@ defmodule EthereumApi do
         ],
         args_transformer!: fn address, block_number_or_tag ->
           [
-            EthereumApi.Types.Data20.deserialize!(address),
-            deserialize_quantity_or_tag!(block_number_or_tag)
+            EthereumApi.Types.Data20.from_term!(address),
+            from_term_quantity_or_tag!(block_number_or_tag)
           ]
         end,
         response_type: {:type_alias, EthereumApi.Types.Wei.t()},
-        response_parser: &EthereumApi.Types.Wei.deserialize/1
+        response_parser: &EthereumApi.Types.Wei.from_term/1
       },
       %{
         method: "eth_getStorageAt",
@@ -172,13 +172,13 @@ defmodule EthereumApi do
         ],
         args_transformer!: fn address, position, block_number_or_tag ->
           [
-            EthereumApi.Types.Data20.deserialize!(address),
-            EthereumApi.Types.Quantity.deserialize!(position),
-            deserialize_quantity_or_tag!(block_number_or_tag)
+            EthereumApi.Types.Data20.from_term!(address),
+            EthereumApi.Types.Quantity.from_term!(position),
+            from_term_quantity_or_tag!(block_number_or_tag)
           ]
         end,
         response_type: {:type_alias, EthereumApi.Types.Data.t()},
-        response_parser: &EthereumApi.Types.Data.deserialize/1
+        response_parser: &EthereumApi.Types.Data.from_term/1
       },
       %{
         method: "eth_getTransactionCount",
@@ -196,12 +196,12 @@ defmodule EthereumApi do
         ],
         args_transformer!: fn address, block_number_or_tag ->
           [
-            EthereumApi.Types.Data20.deserialize!(address),
-            deserialize_quantity_or_tag!(block_number_or_tag)
+            EthereumApi.Types.Data20.from_term!(address),
+            from_term_quantity_or_tag!(block_number_or_tag)
           ]
         end,
         response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
-        response_parser: &EthereumApi.Types.Quantity.deserialize/1
+        response_parser: &EthereumApi.Types.Quantity.from_term/1
       },
       %{
         method: "eth_getBlockTransactionCountByHash",
@@ -212,9 +212,9 @@ defmodule EthereumApi do
           - block_hash: The block hash
         """,
         args: {block_hash, EthereumApi.Types.Data32.t()},
-        args_transformer!: &EthereumApi.Types.Data32.deserialize!/1,
+        args_transformer!: &EthereumApi.Types.Data32.from_term!/1,
         response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
-        response_parser: &EthereumApi.Types.Quantity.deserialize/1
+        response_parser: &EthereumApi.Types.Quantity.from_term/1
       },
       %{
         method: "eth_getBlockTransactionCountByNumber",
@@ -226,9 +226,9 @@ defmodule EthereumApi do
             #{inspect(EthereumApi.Types.Tag.tags())}
         """,
         args: {block_number_or_tag, EthereumApi.Types.Quantity.t() | EthereumApi.Types.Tag.t()},
-        args_transformer!: &deserialize_quantity_or_tag!/1,
+        args_transformer!: &from_term_quantity_or_tag!/1,
         response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
-        response_parser: &EthereumApi.Types.Quantity.deserialize/1
+        response_parser: &EthereumApi.Types.Quantity.from_term/1
       },
       %{
         method: "eth_getUncleCountByBlockHash",
@@ -239,9 +239,9 @@ defmodule EthereumApi do
           - block_hash: The block hash
         """,
         args: {block_hash, EthereumApi.Types.Data32.t()},
-        args_transformer!: &EthereumApi.Types.Data32.deserialize!/1,
+        args_transformer!: &EthereumApi.Types.Data32.from_term!/1,
         response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
-        response_parser: &EthereumApi.Types.Quantity.deserialize/1
+        response_parser: &EthereumApi.Types.Quantity.from_term/1
       },
       %{
         method: "eth_getUncleCountByBlockNumber",
@@ -253,9 +253,9 @@ defmodule EthereumApi do
             #{inspect(EthereumApi.Types.Tag.tags())}
         """,
         args: {block_number_or_tag, EthereumApi.Types.Quantity.t() | EthereumApi.Types.Tag.t()},
-        args_transformer!: &deserialize_quantity_or_tag!/1,
+        args_transformer!: &from_term_quantity_or_tag!/1,
         response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
-        response_parser: &EthereumApi.Types.Quantity.deserialize/1
+        response_parser: &EthereumApi.Types.Quantity.from_term/1
       },
       %{
         method: "eth_getCode",
@@ -273,12 +273,12 @@ defmodule EthereumApi do
         ],
         args_transformer!: fn address, block_number_or_tag ->
           [
-            EthereumApi.Types.Data20.deserialize!(address),
-            deserialize_quantity_or_tag!(block_number_or_tag)
+            EthereumApi.Types.Data20.from_term!(address),
+            from_term_quantity_or_tag!(block_number_or_tag)
           ]
         end,
         response_type: {:type_alias, EthereumApi.Types.Data.t()},
-        response_parser: &EthereumApi.Types.Data.deserialize/1
+        response_parser: &EthereumApi.Types.Data.from_term/1
       },
       %{
         method: "eth_sign",
@@ -302,12 +302,12 @@ defmodule EthereumApi do
         ],
         args_transformer!: fn address, data ->
           [
-            EthereumApi.Types.Data20.deserialize!(address),
-            EthereumApi.Types.Data.deserialize!(data)
+            EthereumApi.Types.Data20.from_term!(address),
+            EthereumApi.Types.Data.from_term!(data)
           ]
         end,
         response_type: {:type_alias, EthereumApi.Types.Data.t()},
-        response_parser: &EthereumApi.Types.Data.deserialize/1
+        response_parser: &EthereumApi.Types.Data.from_term/1
       },
       %{
         method: "eth_signTransaction",
@@ -346,14 +346,14 @@ defmodule EthereumApi do
         args_transformer!: fn from, data, opts ->
           create_transaction_object!(
             %{
-              from: EthereumApi.Types.Data20.deserialize!(from),
-              data: EthereumApi.Types.Data.deserialize!(data)
+              from: EthereumApi.Types.Data20.from_term!(from),
+              data: EthereumApi.Types.Data.from_term!(data)
             },
             opts
           )
         end,
         response_type: {:type_alias, EthereumApi.Types.Data.t()},
-        response_parser: &EthereumApi.Types.Data.deserialize/1
+        response_parser: &EthereumApi.Types.Data.from_term/1
       },
       %{
         method: "eth_sendTransaction",
@@ -394,14 +394,14 @@ defmodule EthereumApi do
         args_transformer!: fn from, data, opts ->
           create_transaction_object!(
             %{
-              from: EthereumApi.Types.Data20.deserialize!(from),
-              data: EthereumApi.Types.Data.deserialize!(data)
+              from: EthereumApi.Types.Data20.from_term!(from),
+              data: EthereumApi.Types.Data.from_term!(data)
             },
             opts
           )
         end,
         response_type: {:type_alias, EthereumApi.Types.Data32.t()},
-        response_parser: &EthereumApi.Types.Data32.deserialize/1
+        response_parser: &EthereumApi.Types.Data32.from_term/1
       },
       %{
         method: "eth_sendRawTransaction",
@@ -417,9 +417,9 @@ defmodule EthereumApi do
             proposed in a block, when you created a contract.
         """,
         args: {signed_transaction_data, EthereumApi.Types.Data.t()},
-        args_transformer!: &EthereumApi.Types.Data.deserialize!/1,
+        args_transformer!: &EthereumApi.Types.Data.from_term!/1,
         response_type: {:type_alias, EthereumApi.Types.Data32.t()},
-        response_parser: &EthereumApi.Types.Data32.deserialize/1
+        response_parser: &EthereumApi.Types.Data32.from_term/1
       },
       %{
         method: "eth_call",
@@ -462,11 +462,11 @@ defmodule EthereumApi do
         args_transformer!: fn {{:to, to}, opts}, block_number_or_tag ->
           [
             create_transaction_object!(%{to: to}, opts),
-            deserialize_quantity_or_tag!(block_number_or_tag)
+            from_term_quantity_or_tag!(block_number_or_tag)
           ]
         end,
         response_type: {:type_alias, EthereumApi.Types.Data.t()},
-        response_parser: &EthereumApi.Types.Data.deserialize/1
+        response_parser: &EthereumApi.Types.Data.from_term/1
       },
       %{
         method: "eth_estimateGas",
@@ -508,13 +508,13 @@ defmodule EthereumApi do
           transaction = create_transaction_object!(%{}, transaction)
 
           if block_number_or_tag do
-            [transaction, deserialize_quantity_or_tag!(block_number_or_tag)]
+            [transaction, from_term_quantity_or_tag!(block_number_or_tag)]
           else
             [transaction]
           end
         end,
         response_type: {:type_alias, EthereumApi.Types.Wei.t()},
-        response_parser: &EthereumApi.Types.Wei.deserialize/1
+        response_parser: &EthereumApi.Types.Wei.from_term/1
       },
       %{
         method: "eth_getBlockByHash",
@@ -531,17 +531,12 @@ defmodule EthereumApi do
         ],
         args_transformer!: fn block_hash, full_transaction_objects? ->
           [
-            EthereumApi.Types.Data32.deserialize!(block_hash),
+            EthereumApi.Types.Data32.from_term!(block_hash),
             Types.Bool.from_term!(full_transaction_objects?)
           ]
         end,
         response_type: {:type_alias, Option.t(EthereumApi.Types.Block.t())},
-        response_parser: fn response ->
-          EthereumApi.Support.Deserializer.deserialize_optional(
-            response,
-            &EthereumApi.Types.Block.deserialize/1
-          )
-        end
+        response_parser: &EthereumApi.Types.Block.from_term_optional/1
       },
       %{
         method: "eth_getBlockByNumber",
@@ -559,17 +554,12 @@ defmodule EthereumApi do
         ],
         args_transformer!: fn block_number_or_tag, full_transaction_objects? ->
           [
-            deserialize_quantity_or_tag!(block_number_or_tag),
+            from_term_quantity_or_tag!(block_number_or_tag),
             Types.Bool.from_term!(full_transaction_objects?)
           ]
         end,
         response_type: {:type_alias, Option.t(EthereumApi.Types.Block.t())},
-        response_parser: fn response ->
-          EthereumApi.Support.Deserializer.deserialize_optional(
-            response,
-            &EthereumApi.Types.Block.deserialize/1
-          )
-        end
+        response_parser: &EthereumApi.Types.Block.from_term_optional/1
       },
       %{
         method: "eth_getTransactionByHash",
@@ -580,14 +570,9 @@ defmodule EthereumApi do
           - transaction_hash: Hash of a transaction
         """,
         args: {transaction_hash, EthereumApi.Types.Data32.t()},
-        args_transformer!: &EthereumApi.Types.Data32.deserialize!/1,
+        args_transformer!: &EthereumApi.Types.Data32.from_term!/1,
         response_type: {:type_alias, Option.t(EthereumApi.Types.Transaction.t())},
-        response_parser: fn response ->
-          EthereumApi.Support.Deserializer.deserialize_optional(
-            response,
-            &EthereumApi.Types.Transaction.deserialize/1
-          )
-        end
+        response_parser: &EthereumApi.Types.Transaction.from_term_optional/1
       },
       %{
         method: "eth_getTransactionByBlockHashAndIndex",
@@ -604,17 +589,12 @@ defmodule EthereumApi do
         ],
         args_transformer!: fn block_hash, transaction_index ->
           [
-            EthereumApi.Types.Data32.deserialize!(block_hash),
-            EthereumApi.Types.Quantity.deserialize!(transaction_index)
+            EthereumApi.Types.Data32.from_term!(block_hash),
+            EthereumApi.Types.Quantity.from_term!(transaction_index)
           ]
         end,
         response_type: {:type_alias, Option.t(EthereumApi.Types.Transaction.t())},
-        response_parser: fn response ->
-          EthereumApi.Support.Deserializer.deserialize_optional(
-            response,
-            &EthereumApi.Types.Transaction.deserialize/1
-          )
-        end
+        response_parser: &EthereumApi.Types.Transaction.from_term_optional/1
       },
       %{
         method: "eth_getTransactionByBlockNumberAndIndex",
@@ -632,17 +612,12 @@ defmodule EthereumApi do
         ],
         args_transformer!: fn block_number_or_tag, transaction_index ->
           [
-            deserialize_quantity_or_tag!(block_number_or_tag),
-            EthereumApi.Types.Quantity.deserialize!(transaction_index)
+            from_term_quantity_or_tag!(block_number_or_tag),
+            EthereumApi.Types.Quantity.from_term!(transaction_index)
           ]
         end,
         response_type: {:type_alias, Option.t(EthereumApi.Types.Transaction.t())},
-        response_parser: fn response ->
-          EthereumApi.Support.Deserializer.deserialize_optional(
-            response,
-            &EthereumApi.Types.Transaction.deserialize/1
-          )
-        end
+        response_parser: &EthereumApi.Types.Transaction.from_term_optional/1
       },
       %{
         method: "eth_getTransactionReceipt",
@@ -658,14 +633,9 @@ defmodule EthereumApi do
           - Option.t(TransactionReceipt.t()) - A transaction receipt object, or nil when no receipt was found
         """,
         args: {transaction_hash, EthereumApi.Types.Data32.t()},
-        args_transformer!: &EthereumApi.Types.Data32.deserialize!/1,
+        args_transformer!: &EthereumApi.Types.Data32.from_term!/1,
         response_type: {:type_alias, Option.t(EthereumApi.Types.TransactionReceipt.t())},
-        response_parser: fn response ->
-          EthereumApi.Support.Deserializer.deserialize_optional(
-            response,
-            &EthereumApi.Types.TransactionReceipt.deserialize/1
-          )
-        end
+        response_parser: &EthereumApi.Types.TransactionReceipt.from_term_optional/1
       }
     ]
   }
@@ -675,16 +645,16 @@ defmodule EthereumApi do
       value =
         cond do
           opt in [:gas, :nonce] ->
-            EthereumApi.Types.Quantity.deserialize!(value)
+            EthereumApi.Types.Quantity.from_term!(value)
 
           opt in [:gas_price, :value] ->
-            EthereumApi.Types.Wei.deserialize!(value)
+            EthereumApi.Types.Wei.from_term!(value)
 
           opt in [:to, :from] ->
-            EthereumApi.Types.Data20.deserialize!(value)
+            EthereumApi.Types.Data20.from_term!(value)
 
           opt == :data ->
-            EthereumApi.Types.Data.deserialize!(value)
+            EthereumApi.Types.Data.from_term!(value)
 
           true ->
             raise ArgumentError, "Invalid option: #{inspect(opt)}"
@@ -698,17 +668,11 @@ defmodule EthereumApi do
     end)
   end
 
-  defp deserialize_quantity_or_tag!(value) do
-    try do
-      EthereumApi.Types.Quantity.deserialize!(value)
-    rescue
-      ArgumentError ->
-        try do
-          EthereumApi.Types.Tag.deserialize!(value)
-        rescue
-          ArgumentError ->
-            raise ArgumentError, "Expected a quantity or tag, found #{inspect(value)}"
-        end
-    end
+  defp from_term_quantity_or_tag!(value) do
+    EthereumApi.Types.Quantity.from_term(value)
+    |> Result.unwrap_or_else(fn _err ->
+      EthereumApi.Types.Tag.from_term(value)
+      |> Result.expect!("Expected a quantity or tag, found #{inspect(value)}")
+    end)
   end
 end
