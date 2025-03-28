@@ -17,14 +17,14 @@ defmodule StructTest.FromTermTest do
         basic_type: Types.Str,
         basic_type_custom_key: [
           type: Types.Str,
-          "Struct.FromTerm": "basicTypeCustomKey"
+          "Struct.FromTerm": [keys: "basicTypeCustomKey"]
         ],
         optional_type: {:option, Types.Int},
         list_type: {:list, Types.Str},
         nested_type: {:option, {:list, Types.Str}},
         nested_type_custom_key: [
           type: {:option, {:list, Types.Str}},
-          "Struct.FromTerm": "CompletelyCustomKey"
+          "Struct.FromTerm": [keys: "CompletelyCustomKey"]
         ],
         bar: Bar
       ]

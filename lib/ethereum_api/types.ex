@@ -148,75 +148,75 @@ defmodule EthereumApi.Types do
       [
         number: [
           type: {:option, EthereumApi.Types.Quantity},
-          "Struct.FromTerm": "number"
+          "Struct.FromTerm": [keys: "number"]
         ],
         hash: [
           type: {:option, EthereumApi.Types.Data32},
-          "Struct.FromTerm": "hash"
+          "Struct.FromTerm": [keys: "hash"]
         ],
         parent_hash: [
           type: EthereumApi.Types.Data32,
-          "Struct.FromTerm": "parentHash"
+          "Struct.FromTerm": [keys: "parentHash"]
         ],
         nonce: [
           type: {:option, EthereumApi.Types.Data8},
-          "Struct.FromTerm": "nonce"
+          "Struct.FromTerm": [keys: "nonce"]
         ],
         sha3_uncles: [
           type: EthereumApi.Types.Data32,
-          "Struct.FromTerm": "sha3Uncles"
+          "Struct.FromTerm": [keys: "sha3Uncles"]
         ],
         logs_bloom: [
           type: {:option, EthereumApi.Types.Data256},
-          "Struct.FromTerm": "logsBloom"
+          "Struct.FromTerm": [keys: "logsBloom"]
         ],
         transactions_root: [
           type: EthereumApi.Types.Data32,
-          "Struct.FromTerm": "transactionsRoot"
+          "Struct.FromTerm": [keys: "transactionsRoot"]
         ],
         state_root: [
           type: EthereumApi.Types.Data32,
-          "Struct.FromTerm": "stateRoot"
+          "Struct.FromTerm": [keys: "stateRoot"]
         ],
         receipts_root: [
           type: EthereumApi.Types.Data32,
-          "Struct.FromTerm": "receiptsRoot"
+          "Struct.FromTerm": [keys: "receiptsRoot"]
         ],
         miner: [
           type: EthereumApi.Types.Data20,
-          "Struct.FromTerm": "miner"
+          "Struct.FromTerm": [keys: "miner"]
         ],
         difficulty: [
           type: EthereumApi.Types.Quantity,
-          "Struct.FromTerm": "difficulty"
+          "Struct.FromTerm": [keys: "difficulty"]
         ],
         extra_data: [
           type: EthereumApi.Types.Data,
-          "Struct.FromTerm": "extraData"
+          "Struct.FromTerm": [keys: "extraData"]
         ],
         size: [
           type: EthereumApi.Types.Quantity,
-          "Struct.FromTerm": "size"
+          "Struct.FromTerm": [keys: "size"]
         ],
         gas_limit: [
           type: EthereumApi.Types.Quantity,
-          "Struct.FromTerm": "gasLimit"
+          "Struct.FromTerm": [keys: "gasLimit"]
         ],
         gas_used: [
           type: EthereumApi.Types.Quantity,
-          "Struct.FromTerm": "gasUsed"
+          "Struct.FromTerm": [keys: "gasUsed"]
         ],
         timestamp: [
           type: EthereumApi.Types.Quantity,
-          "Struct.FromTerm": "timestamp"
+          "Struct.FromTerm": [keys: "timestamp"]
         ],
         transactions: [
           type: {:list, EthereumApi.Types.TransactionEnum},
-          "Struct.FromTerm": "transactions"
+          "Struct.FromTerm": [keys: "transactions", default: []]
         ],
         uncles: [
           type: {:list, EthereumApi.Types.Data32},
-          "Struct.FromTerm": "uncles"
+          "Struct.FromTerm": [keys: "uncles"]
         ]
       ]
     }
@@ -244,26 +244,29 @@ defmodule EthereumApi.Types do
     use Struct, {
       [Struct.FromTerm],
       [
-        block_hash: [type: {:option, EthereumApi.Types.Data32}, "Struct.FromTerm": "blockHash"],
+        block_hash: [
+          type: {:option, EthereumApi.Types.Data32},
+          "Struct.FromTerm": [keys: "blockHash"]
+        ],
         block_number: [
           type: {:option, EthereumApi.Types.Quantity},
-          "Struct.FromTerm": "blockNumber"
+          "Struct.FromTerm": [keys: "blockNumber"]
         ],
-        from: [type: EthereumApi.Types.Data20, "Struct.FromTerm": "from"],
-        gas: [type: EthereumApi.Types.Quantity, "Struct.FromTerm": "gas"],
-        gas_price: [type: EthereumApi.Types.Wei, "Struct.FromTerm": "gasPrice"],
-        hash: [type: EthereumApi.Types.Data32, "Struct.FromTerm": "hash"],
-        input: [type: EthereumApi.Types.Data, "Struct.FromTerm": "input"],
-        nonce: [type: EthereumApi.Types.Quantity, "Struct.FromTerm": "nonce"],
-        to: [type: {:option, EthereumApi.Types.Data20}, "Struct.FromTerm": "to"],
+        from: [type: EthereumApi.Types.Data20, "Struct.FromTerm": [keys: "from"]],
+        gas: [type: EthereumApi.Types.Quantity, "Struct.FromTerm": [keys: "gas"]],
+        gas_price: [type: EthereumApi.Types.Wei, "Struct.FromTerm": [keys: "gasPrice"]],
+        hash: [type: EthereumApi.Types.Data32, "Struct.FromTerm": [keys: "hash"]],
+        input: [type: EthereumApi.Types.Data, "Struct.FromTerm": [keys: "input"]],
+        nonce: [type: EthereumApi.Types.Quantity, "Struct.FromTerm": [keys: "nonce"]],
+        to: [type: {:option, EthereumApi.Types.Data20}, "Struct.FromTerm": [keys: "to"]],
         transaction_index: [
           type: {:option, EthereumApi.Types.Quantity},
-          "Struct.FromTerm": "transactionIndex"
+          "Struct.FromTerm": [keys: "transactionIndex"]
         ],
-        value: [type: EthereumApi.Types.Wei, "Struct.FromTerm": "value"],
-        v: [type: EthereumApi.Types.Quantity, "Struct.FromTerm": "v"],
-        r: [type: EthereumApi.Types.Quantity, "Struct.FromTerm": "r"],
-        s: [type: EthereumApi.Types.Quantity, "Struct.FromTerm": "s"]
+        value: [type: EthereumApi.Types.Wei, "Struct.FromTerm": [keys: "value"]],
+        v: [type: EthereumApi.Types.Quantity, "Struct.FromTerm": [keys: "v"]],
+        r: [type: EthereumApi.Types.Quantity, "Struct.FromTerm": [keys: "r"]],
+        s: [type: EthereumApi.Types.Quantity, "Struct.FromTerm": [keys: "s"]]
       ]
     }
   end
@@ -293,14 +296,20 @@ defmodule EthereumApi.Types do
         [Struct.FromTerm],
         [
           removed: Types.Bool,
-          log_index: [type: EthereumApi.Types.Quantity, "Struct.FromTerm": "logIndex"],
+          log_index: [type: EthereumApi.Types.Quantity, "Struct.FromTerm": [keys: "logIndex"]],
           transaction_index: [
             type: EthereumApi.Types.Quantity,
-            "Struct.FromTerm": "transactionIndex"
+            "Struct.FromTerm": [keys: "transactionIndex"]
           ],
-          transaction_hash: [type: EthereumApi.Types.Data32, "Struct.FromTerm": "transactionHash"],
-          block_hash: [type: EthereumApi.Types.Data32, "Struct.FromTerm": "blockHash"],
-          block_number: [type: EthereumApi.Types.Quantity, "Struct.FromTerm": "blockNumber"],
+          transaction_hash: [
+            type: EthereumApi.Types.Data32,
+            "Struct.FromTerm": [keys: "transactionHash"]
+          ],
+          block_hash: [type: EthereumApi.Types.Data32, "Struct.FromTerm": [keys: "blockHash"]],
+          block_number: [
+            type: EthereumApi.Types.Quantity,
+            "Struct.FromTerm": [keys: "blockNumber"]
+          ],
           address: EthereumApi.Types.Data20,
           data: EthereumApi.Types.Data,
           topics: {:list, EthereumApi.Types.Data32}
@@ -313,47 +322,47 @@ defmodule EthereumApi.Types do
       [
         transaction_hash: [
           type: EthereumApi.Types.Data32,
-          "Struct.FromTerm": "transactionHash"
+          "Struct.FromTerm": [keys: "transactionHash"]
         ],
         transaction_index: [
           type: EthereumApi.Types.Quantity,
-          "Struct.FromTerm": "transactionIndex"
+          "Struct.FromTerm": [keys: "transactionIndex"]
         ],
         block_hash: [
           type: EthereumApi.Types.Data32,
-          "Struct.FromTerm": "blockHash"
+          "Struct.FromTerm": [keys: "blockHash"]
         ],
         block_number: [
           type: EthereumApi.Types.Quantity,
-          "Struct.FromTerm": "blockNumber"
+          "Struct.FromTerm": [keys: "blockNumber"]
         ],
         from: EthereumApi.Types.Data20,
         to: {:option, EthereumApi.Types.Data20},
         cumulative_gas_used: [
           type: EthereumApi.Types.Quantity,
-          "Struct.FromTerm": "cumulativeGasUsed"
+          "Struct.FromTerm": [keys: "cumulativeGasUsed"]
         ],
         effective_gas_price: [
           type: EthereumApi.Types.Quantity,
-          "Struct.FromTerm": "effectiveGasPrice"
+          "Struct.FromTerm": [keys: "effectiveGasPrice"]
         ],
         gas_used: [
           type: EthereumApi.Types.Quantity,
-          "Struct.FromTerm": "gasUsed"
+          "Struct.FromTerm": [keys: "gasUsed"]
         ],
         contract_address: [
           type: {:option, EthereumApi.Types.Data20},
-          "Struct.FromTerm": "contractAddress"
+          "Struct.FromTerm": [keys: "contractAddress"]
         ],
         logs: {:list, Log},
         logs_bloom: [
           type: EthereumApi.Types.Data256,
-          "Struct.FromTerm": "logsBloom"
+          "Struct.FromTerm": [keys: "logsBloom"]
         ],
         type: EthereumApi.Types.Quantity,
         status: [
           type: TransactionStatus,
-          "Struct.FromTerm": ["status", "root"]
+          "Struct.FromTerm": [keys: ["status", "root"]]
         ]
       ]
     }

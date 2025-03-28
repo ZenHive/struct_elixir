@@ -77,10 +77,20 @@ defmodule Struct.FromTerm do
   end
 
   def get_value(map, field_name, opts) when is_list(opts) do
-    map[field_name] ||
-      opts
-      |> Keyword.get(:"Struct.FromTerm")
-      |> Option.map(&(&1 |> List.wrap() |> Enum.find_value(fn key -> map[key] end)))
+    map[field_name]
+    |> Option.unwrap_or_else(fn ->
+      Keyword.get(opts, :"Struct.FromTerm")
+      |> Option.map(fn from_term_opts ->
+        from_term_opts
+        |> Keyword.get(:keys)
+        |> Option.map(fn keys ->
+          keys |> List.wrap() |> Enum.find_value(fn key -> map[key] end)
+        end)
+        |> Option.unwrap_or_else(fn ->
+          Keyword.get(from_term_opts, :default)
+        end)
+      end)
+    end)
   end
 
   def get_value(map, field_name, _type) do
