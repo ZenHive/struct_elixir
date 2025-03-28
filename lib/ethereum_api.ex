@@ -687,33 +687,114 @@ defmodule EthereumApi do
         end,
         response_type: {:type_alias, Option.t(EthereumApi.Types.Block.t())},
         response_parser: &EthereumApi.Types.Block.from_term_optional/1
+      },
+      %{
+        method: "eth_newFilter",
+        doc: """
+          Creates a filter object, based on filter options, to notify when the state changes (logs).
+          To check if the state has changed, call eth_getFilterChanges.
+
+          A note on specifying topic filters: Topics are order-dependent. A transaction with a log
+          with topics [A, B] will be matched by the following topic filters:
+          - []: anything
+          - [A]: A in first position (and anything after)
+          - [null, B]: anything in first position AND B in second position (and anything after)
+          - [A, B]: A in first position AND B in second position (and anything after)
+          - [[A, B], [A, B]]: (A OR B) in first position AND (A OR B) in second position (and anything after)
+
+          # Parameters
+          - filter_options: A map with the following optional fields:
+            - from_block: Integer block number, or one of the following strings
+              #{inspect(EthereumApi.Types.Tag.tags())}
+            - to_block: Integer block number, or one of the following strings
+              #{inspect(EthereumApi.Types.Tag.tags())}
+            - address: Contract address or a list of addresses from which logs should originate
+            - topics: Array of 32 Bytes DATA topics. Topics are order-dependent. Each topic can also be an array of DATA with "or" options.
+
+          # Returns
+          - Quantity - A filter id
+        """,
+        args:
+          {filter_options,
+           [
+             {:from_block, EthereumApi.Types.Quantity.t() | EthereumApi.Types.Tag.t()},
+             {:to_block, EthereumApi.Types.Quantity.t() | EthereumApi.Types.Tag.t()},
+             {:address, EthereumApi.Types.Data20.t() | [EthereumApi.Types.Data20.t()]},
+             {:topics, [EthereumApi.Types.Data32.t() | [EthereumApi.Types.Data32.t()]]}
+           ]},
+        args_transformer!: &create_filter_options_obect!/1,
+        response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
+        response_parser: &EthereumApi.Types.Quantity.from_term/1
       }
     ]
   }
 
   defp create_transaction_object!(transaction, opts) do
     Enum.reduce(opts, transaction, fn {opt, value}, acc ->
-      value =
+      {key, value} =
         cond do
           opt in [:gas, :nonce] ->
-            EthereumApi.Types.Quantity.from_term!(value)
+            {Atom.to_string(opt), EthereumApi.Types.Quantity.from_term!(value)}
 
-          opt in [:gas_price, :value] ->
-            EthereumApi.Types.Wei.from_term!(value)
+          opt == :gas_price ->
+            {"gasPrice", EthereumApi.Types.Wei.from_term!(value)}
+
+          opt == :value ->
+            {"value", EthereumApi.Types.Wei.from_term!(value)}
 
           opt in [:to, :from] ->
-            EthereumApi.Types.Data20.from_term!(value)
+            {Atom.to_string(opt), EthereumApi.Types.Data20.from_term!(value)}
 
           opt == :data ->
-            EthereumApi.Types.Data.from_term!(value)
+            {Atom.to_string(opt), EthereumApi.Types.Data.from_term!(value)}
 
           true ->
             raise ArgumentError, "Invalid option: #{inspect(opt)}"
         end
 
-      Map.get_and_update(acc, opt, fn
+      Map.get_and_update(acc, key, fn
         nil -> {nil, value}
-        _ -> raise ArgumentError, "Invalid/Duplicate option: #{inspect(opt)}"
+        _ -> raise ArgumentError, "Duplicate option: #{inspect(opt)}"
+      end)
+      |> elem(1)
+    end)
+  end
+
+  def create_filter_options_obect!(opts) do
+    Enum.reduce(opts, %{}, fn {key, value}, acc ->
+      {key, value} =
+        case key do
+          :from_block ->
+            {"fromBlock", from_term_quantity_or_tag!(value)}
+
+          :to_block ->
+            {"toBlock", from_term_quantity_or_tag!(value)}
+
+          :address ->
+            {"address",
+             if is_list(value) do
+               Enum.map(value, &EthereumApi.Types.Data20.from_term!/1)
+             else
+               EthereumApi.Types.Data20.from_term!(value)
+             end}
+
+          :topics ->
+            {"topics",
+             Enum.map(value, fn topic ->
+               if is_list(topic) do
+                 Enum.map(topic, &EthereumApi.Types.Data32.from_term!/1)
+               else
+                 EthereumApi.Types.Data32.from_term!(topic)
+               end
+             end)}
+
+          _ ->
+            raise ArgumentError, "Invalid filter option: #{inspect(key)}"
+        end
+
+      Map.get_and_update(acc, key, fn
+        nil -> {nil, value}
+        _ -> raise ArgumentError, "Duplicate filter option: #{inspect(key)}"
       end)
       |> elem(1)
     end)
