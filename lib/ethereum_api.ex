@@ -749,6 +749,23 @@ defmodule EthereumApi do
         """,
         response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
         response_parser: &EthereumApi.Types.Quantity.from_term/1
+      },
+      %{
+        method: "eth_uninstallFilter",
+        doc: """
+          Uninstalls a filter with given id. Should always be called when watch is no longer needed.
+          Additionally, filters timeout when they aren't requested with eth_getFilterChanges for a period of time.
+
+          # Parameters
+          - filter_id: The filter id to uninstall
+
+          # Returns
+          - Boolean - true if the filter was successfully uninstalled, otherwise false
+        """,
+        args: {filter_id, EthereumApi.Types.Quantity.t()},
+        args_transformer!: &EthereumApi.Types.Quantity.from_term!/1,
+        response_type: {:type_alias, Types.Bool.t()},
+        response_parser: &Types.Bool.from_term/1
       }
     ]
   }
