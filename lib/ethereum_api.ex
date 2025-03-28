@@ -737,6 +737,18 @@ defmodule EthereumApi do
         """,
         response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
         response_parser: &EthereumApi.Types.Quantity.from_term/1
+      },
+      %{
+        method: "eth_newPendingTransactionFilter",
+        doc: """
+          Creates a filter in the node, to notify when new pending transactions arrive.
+          To check if the state has changed, call eth_getFilterChanges.
+
+          # Returns
+          - Quantity - A filter id
+        """,
+        response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
+        response_parser: &EthereumApi.Types.Quantity.from_term/1
       }
     ]
   }
