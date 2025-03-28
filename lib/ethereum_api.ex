@@ -766,6 +766,33 @@ defmodule EthereumApi do
         args_transformer!: &EthereumApi.Types.Quantity.from_term!/1,
         response_type: {:type_alias, Types.Bool.t()},
         response_parser: &Types.Bool.from_term/1
+      },
+      %{
+        method: "eth_getFilterChanges",
+        doc: """
+          Polling method for a filter, which returns an array of logs which occurred since last poll.
+
+          The response type depends on the type of filter:
+          - For eth_newFilter: Array of Log objects
+          - For eth_newBlockFilter: Array of block hashes (Data32)
+          - For eth_newPendingTransactionFilter: Array of transaction hashes (Data32)
+
+          # Parameters
+          - filter_id: The filter id to get changes for
+
+          # Returns
+          - Option.t({:log, [Log.t()]} | {:hash, [Data32.t()]}) - Array of changes since last poll
+        """,
+        args: {filter_id, EthereumApi.Types.Quantity.t()},
+        args_transformer!: &EthereumApi.Types.Quantity.from_term!/1,
+        response_type: {
+          :type_alias,
+          Option.t(
+            {:log, [EthereumApi.Types.Log.t()]}
+            | {:hash, [EthereumApi.Types.Data32.t()]}
+          )
+        },
+        response_parser: &parse_filer_result/1
       }
     ]
   }
@@ -839,6 +866,31 @@ defmodule EthereumApi do
       end)
       |> elem(1)
     end)
+  end
+
+  defp parse_filer_result(response) do
+    case response do
+      [] ->
+        {:ok, nil}
+
+      [first | _] = list ->
+        if is_map(first) do
+          Result.try_reduce(list, [], fn elem, acc ->
+            EthereumApi.Types.Log.from_term(elem)
+            |> Result.map(&[&1 | acc])
+          end)
+          |> Result.map(&{:log, Enum.reverse(&1)})
+        else
+          Result.try_reduce(list, [], fn elem, acc ->
+            EthereumApi.Types.Data32.from_term(elem)
+            |> Result.map(&[&1 | acc])
+          end)
+          |> Result.map(&{:hash, Enum.reverse(&1)})
+        end
+
+      response ->
+        {:error, "Invalid response, expected list found #{inspect(response)}"}
+    end
   end
 
   defp from_term_quantity_or_tag!(value) do

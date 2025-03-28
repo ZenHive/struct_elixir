@@ -271,6 +271,32 @@ defmodule EthereumApi.Types do
     }
   end
 
+  defmodule Log do
+    use Struct, {
+      [Struct.FromTerm],
+      [
+        removed: Types.Bool,
+        log_index: [type: EthereumApi.Types.Quantity, "Struct.FromTerm": [keys: "logIndex"]],
+        transaction_index: [
+          type: EthereumApi.Types.Quantity,
+          "Struct.FromTerm": [keys: "transactionIndex"]
+        ],
+        transaction_hash: [
+          type: EthereumApi.Types.Data32,
+          "Struct.FromTerm": [keys: "transactionHash"]
+        ],
+        block_hash: [type: EthereumApi.Types.Data32, "Struct.FromTerm": [keys: "blockHash"]],
+        block_number: [
+          type: EthereumApi.Types.Quantity,
+          "Struct.FromTerm": [keys: "blockNumber"]
+        ],
+        address: EthereumApi.Types.Data20,
+        data: EthereumApi.Types.Data,
+        topics: {:list, EthereumApi.Types.Data32}
+      ]
+    }
+  end
+
   defmodule TransactionReceipt do
     defmodule TransactionStatus do
       @type t :: :success | :failure | {:pre_byzantium, EthereumApi.Types.Data32.t()}
@@ -289,32 +315,6 @@ defmodule EthereumApi.Types do
             |> Result.map_err(fn _err -> "Invalid TransactionStatus: #{inspect(status)}" end)
         end
       end
-    end
-
-    defmodule Log do
-      use Struct, {
-        [Struct.FromTerm],
-        [
-          removed: Types.Bool,
-          log_index: [type: EthereumApi.Types.Quantity, "Struct.FromTerm": [keys: "logIndex"]],
-          transaction_index: [
-            type: EthereumApi.Types.Quantity,
-            "Struct.FromTerm": [keys: "transactionIndex"]
-          ],
-          transaction_hash: [
-            type: EthereumApi.Types.Data32,
-            "Struct.FromTerm": [keys: "transactionHash"]
-          ],
-          block_hash: [type: EthereumApi.Types.Data32, "Struct.FromTerm": [keys: "blockHash"]],
-          block_number: [
-            type: EthereumApi.Types.Quantity,
-            "Struct.FromTerm": [keys: "blockNumber"]
-          ],
-          address: EthereumApi.Types.Data20,
-          data: EthereumApi.Types.Data,
-          topics: {:list, EthereumApi.Types.Data32}
-        ]
-      }
     end
 
     use Struct, {
