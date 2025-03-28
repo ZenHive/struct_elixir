@@ -636,6 +636,31 @@ defmodule EthereumApi do
         args_transformer!: &EthereumApi.Types.Data32.from_term!/1,
         response_type: {:type_alias, Option.t(EthereumApi.Types.TransactionReceipt.t())},
         response_parser: &EthereumApi.Types.TransactionReceipt.from_term_optional/1
+      },
+      %{
+        method: "eth_getUncleByBlockHashAndIndex",
+        doc: """
+          Returns information about an uncle of a block by hash and uncle index position.
+
+          # Parameters
+          - block_hash: Hash of a block
+          - uncle_index: Uncle index position
+
+          # Returns
+          - Option.t(Block.t()) - An uncle block object, or nil when no uncle was found
+        """,
+        args: [
+          {block_hash, EthereumApi.Types.Data32.t()},
+          {uncle_index, EthereumApi.Types.Quantity.t()}
+        ],
+        args_transformer!: fn block_hash, uncle_index ->
+          [
+            EthereumApi.Types.Data32.from_term!(block_hash),
+            EthereumApi.Types.Quantity.from_term!(uncle_index)
+          ]
+        end,
+        response_type: {:type_alias, Option.t(EthereumApi.Types.Block.t())},
+        response_parser: &(IO.inspect(&1) |> EthereumApi.Types.Block.from_term_optional())
       }
     ]
   }
