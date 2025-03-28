@@ -722,7 +722,7 @@ defmodule EthereumApi do
              {:address, EthereumApi.Types.Data20.t() | [EthereumApi.Types.Data20.t()]},
              {:topics, [EthereumApi.Types.Data32.t() | [EthereumApi.Types.Data32.t()]]}
            ]},
-        args_transformer!: &create_filter_options_obect!/1,
+        args_transformer!: &create_filter_options_object!/1,
         response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
         response_parser: &EthereumApi.Types.Quantity.from_term/1
       },
@@ -772,16 +772,15 @@ defmodule EthereumApi do
         doc: """
           Polling method for a filter, which returns an array of logs which occurred since last poll.
 
-          The response type depends on the type of filter:
-          - For eth_newFilter: Array of Log objects
-          - For eth_newBlockFilter: Array of block hashes (Data32)
-          - For eth_newPendingTransactionFilter: Array of transaction hashes (Data32)
-
           # Parameters
           - filter_id: The filter id to get changes for
 
           # Returns
-          - Option.t({:log, [Log.t()]} | {:hash, [Data32.t()]}) - Array of changes since last poll
+          - The response type depends on the type of filter:
+            - For eth_newFilter: Array of Log objects
+            - For eth_newBlockFilter: Array of block hashes (Data32)
+            - For eth_newPendingTransactionFilter: Array of transaction hashes (Data32)
+            - nil when the response is empty
         """,
         args: {filter_id, EthereumApi.Types.Quantity.t()},
         args_transformer!: &EthereumApi.Types.Quantity.from_term!/1,
@@ -793,6 +792,22 @@ defmodule EthereumApi do
           )
         },
         response_parser: &parse_filer_result/1
+      },
+      %{
+        method: "eth_getFilterLogs",
+        doc: """
+          Returns an array of all logs matching filter with given id.
+
+          # Parameters
+          - filter_id: The filter id to get logs for (must be created with eth_newFilter)
+
+          # Returns
+          - Array of Log objects
+        """,
+        args: {filter_id, EthereumApi.Types.Quantity.t()},
+        args_transformer!: &EthereumApi.Types.Quantity.from_term!/1,
+        response_type: {:type_alias, [EthereumApi.Types.Log.t()]},
+        response_parser: &EthereumApi.Types.Log.from_term_list/1
       }
     ]
   }
@@ -828,7 +843,7 @@ defmodule EthereumApi do
     end)
   end
 
-  def create_filter_options_obect!(opts) do
+  def create_filter_options_object!(opts) do
     Enum.reduce(opts, %{}, fn {key, value}, acc ->
       {key, value} =
         case key do
