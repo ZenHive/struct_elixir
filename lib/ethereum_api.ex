@@ -55,11 +55,8 @@ defmodule EthereumApi do
         doc: "Returns an object with data about the sync status or false.",
         response_type: false | EthereumApi.Types.Syncing.t(),
         response_parser: fn
-          false ->
-            {:ok, false}
-
-          response ->
-            EthereumApi.Types.Syncing.from_term(response)
+          false -> {:ok, false}
+          response -> EthereumApi.Types.Syncing.from_term(response)
         end
       },
       %{
