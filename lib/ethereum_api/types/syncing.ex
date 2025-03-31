@@ -53,8 +53,6 @@ defmodule EthereumApi.Types.Syncing do
       {:error, "Invalid Syncing: [1, 2, 3]"}
   """
   @spec from_term(term()) :: Result.t(t(), String.t())
-  def from_term(false), do: {:ok, false}
-
   def from_term(
         %{
           "startingBlock" => starting_block,
