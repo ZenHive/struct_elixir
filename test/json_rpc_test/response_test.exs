@@ -17,21 +17,80 @@ defmodule JsonRpc.ResponseTest do
         "error" => %{"code" => -32600, "message" => "Invalid Request"}
       }
 
-      assert Response.parse_response(raw_response) ==
-               {
-                 :ok,
-                 {
-                   99,
-                   {
-                     :error,
-                     %Response.Error{
-                       code: %Response.Error.Code{code: -32600, description: :invalid_request},
-                       message: "Invalid Request",
-                       data: nil
-                     }
-                   }
-                 }
-               }
+      expected_response = %Response.Error{
+        code: %Response.Error.Code{code: -32600, description: :invalid_request},
+        message: "Invalid Request",
+        data: nil
+      }
+
+      assert Response.parse_response(raw_response) == {:ok, {99, {:error, expected_response}}}
+
+      raw_response = %{raw_response | "id" => 95}
+      raw_response = %{raw_response | "error" => %{"code" => -32700, "message" => "Parse error"}}
+
+      expected_response = %Response.Error{
+        code: %Response.Error.Code{code: -32700, description: :parse_error},
+        message: "Parse error",
+        data: nil
+      }
+
+      assert Response.parse_response(raw_response) == {:ok, {95, {:error, expected_response}}}
+
+      raw_response = %{raw_response | "error" => %{"code" => -32601, "message" => "Method not found"}}
+
+      expected_response = %Response.Error{
+        code: %Response.Error.Code{code: -32601, description: :method_not_found},
+        message: "Method not found",
+        data: nil
+      }
+
+      assert Response.parse_response(raw_response) == {:ok, {95, {:error, expected_response}}}
+
+      raw_response = %{raw_response | "error" => %{"code" => -32602, "message" => "Invalid params"}}
+
+      expected_response = %Response.Error{
+        code: %Response.Error.Code{code: -32602, description: :invalid_params},
+        message: "Invalid params",
+        data: nil
+      }
+
+      assert Response.parse_response(raw_response) == {:ok, {95, {:error, expected_response}}}
+
+      raw_response = %{raw_response | "error" => %{"code" => -32603, "message" => "Internal error"}}
+      expected_response = %Response.Error{
+        code: %Response.Error.Code{code: -32603, description: :internal_error},
+        message: "Internal error",
+        data: nil
+      }
+      assert Response.parse_response(raw_response) == {:ok, {95, {:error, expected_response}}}
+
+      raw_response = %{raw_response | "error" => %{"code" => -32000, "message" => "Server error"}}
+      expected_response = %Response.Error{
+        code: %Response.Error.Code{code: -32000, description: :server_error},
+        message: "Server error",
+        data: nil
+      }
+      assert Response.parse_response(raw_response) == {:ok, {95, {:error, expected_response}}}
+
+      raw_response = %{raw_response | "error" => %{"code" => -32099, "message" => "Server error"}}
+      expected_response = %Response.Error{
+        code: %Response.Error.Code{code: -32099, description: :server_error},
+        message: "Server error",
+        data: nil
+      }
+      assert Response.parse_response(raw_response) == {:ok, {95, {:error, expected_response}}}
+
+      raw_response = %{raw_response | "error" => %{"code" => -42, "message" => "Unknown error"}}
+      expected_response = %Response.Error{
+        code: %Response.Error.Code{code: -42, description: :unknown_error},
+        message: "Unknown error",
+        data: nil
+      }
+      assert Response.parse_response(raw_response) == {:ok, {95, {:error, expected_response}}}
+
+      raw_response = %{raw_response | "error" => Map.put(raw_response["error"], "data", 42)}
+      expected_response = %Response.Error{expected_response | data: 42}
+      assert Response.parse_response(raw_response) == {:ok, {95, {:error, expected_response}}}
     end
 
     test "returns error for non-compliant response" do
