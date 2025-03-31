@@ -722,7 +722,7 @@ defmodule EthereumApi do
              {:address, EthereumApi.Types.Data20.t() | [EthereumApi.Types.Data20.t()]},
              {:topics, [EthereumApi.Types.Data32.t() | [EthereumApi.Types.Data32.t()]]}
            ]},
-        args_transformer!: &create_filter_options_object!/1,
+        args_transformer!: &create_filter_options_object!(&1, false),
         response_type: EthereumApi.Types.Quantity.t(),
         response_parser: &EthereumApi.Types.Quantity.from_term/1
       },
@@ -808,6 +808,45 @@ defmodule EthereumApi do
         args_transformer!: &EthereumApi.Types.Quantity.from_term!/1,
         response_type: [EthereumApi.Types.Log.t()],
         response_parser: &EthereumApi.Types.Log.from_term_list/1
+      },
+      %{
+        method: "eth_getLogs",
+        doc: """
+          Returns an array of all logs matching a given filter object.
+
+          A note on specifying topic filters: Topics are order-dependent. A transaction with a log
+          with topics [A, B] will be matched by the following topic filters:
+          - []: anything
+          - [A]: A in first position (and anything after)
+          - [null, B]: anything in first position AND B in second position (and anything after)
+          - [A, B]: A in first position AND B in second position (and anything after)
+          - [[A, B], [A, B]]: (A OR B) in first position AND (A OR B) in second position (and anything after)
+
+          # Parameters
+          - filter_options: A map with the following optional fields:
+            - from_block: Integer block number, or one of the following strings
+              #{inspect(EthereumApi.Types.Tag.tags())}
+            - to_block: Integer block number, or one of the following strings
+              #{inspect(EthereumApi.Types.Tag.tags())}
+            - block_hash: Hash of the block to get logs from (mutually exclusive with from_block/to_block)
+            - address: Contract address or a list of addresses from which logs should originate
+            - topics: Array of 32 Bytes DATA topics. Topics are order-dependent. Each topic can also be an array of DATA with "or" options.
+
+          # Returns
+          - [Log.t()] - Array of log objects
+        """,
+        args:
+          {filter_options,
+           [
+             {:from_block, EthereumApi.Types.Quantity.t() | EthereumApi.Types.Tag.t()},
+             {:to_block, EthereumApi.Types.Quantity.t() | EthereumApi.Types.Tag.t()},
+             {:block_hash, EthereumApi.Types.Data32.t()},
+             {:address, EthereumApi.Types.Data20.t() | [EthereumApi.Types.Data20.t()]},
+             {:topics, [EthereumApi.Types.Data32.t() | [EthereumApi.Types.Data32.t()]]}
+           ]},
+        args_transformer!: &create_filter_options_object!(&1, true),
+        response_type: [EthereumApi.Types.Log.t()],
+        response_parser: &EthereumApi.Types.Log.from_term_list/1
       }
     ]
   }
@@ -843,45 +882,74 @@ defmodule EthereumApi do
     end)
   end
 
-  def create_filter_options_object!(opts) do
+  def create_filter_options_object!(opts, allow_block_hash?) do
+    opts
+    |> validate_filter_options!(allow_block_hash?)
+    |> transform_filter_options!()
+  end
+
+  defp validate_filter_options!(opts, allow_block_hash?) do
+    has_block_hash? = Keyword.has_key?(opts, :block_hash)
+    has_from_or_to? = Keyword.has_key?(opts, :from_block) || Keyword.has_key?(opts, :to_block)
+
+    if has_block_hash? && has_from_or_to? do
+      raise ArgumentError, "Block hash and from/to block options are mutually exclusive"
+    end
+
+    if has_block_hash? && !allow_block_hash? do
+      raise(ArgumentError, "Invalid filter option: :block_hash")
+    end
+
+    opts
+  end
+
+  defp transform_filter_options!(opts) do
     Enum.reduce(opts, %{}, fn {key, value}, acc ->
-      {key, value} =
-        case key do
-          :from_block ->
-            {"fromBlock", from_term_quantity_or_tag!(value)}
+      {transformed_key, transformed_value} = transform_filter_option!(key, value)
 
-          :to_block ->
-            {"toBlock", from_term_quantity_or_tag!(value)}
-
-          :address ->
-            {"address",
-             if is_list(value) do
-               Enum.map(value, &EthereumApi.Types.Data20.from_term!/1)
-             else
-               EthereumApi.Types.Data20.from_term!(value)
-             end}
-
-          :topics ->
-            {"topics",
-             Enum.map(value, fn topic ->
-               if is_list(topic) do
-                 Enum.map(topic, &EthereumApi.Types.Data32.from_term!/1)
-               else
-                 EthereumApi.Types.Data32.from_term!(topic)
-               end
-             end)}
-
-          _ ->
-            raise ArgumentError, "Invalid filter option: #{inspect(key)}"
-        end
-
-      Map.get_and_update(acc, key, fn
-        nil -> {nil, value}
+      Map.get_and_update(acc, transformed_key, fn
+        nil -> {nil, transformed_value}
         _ -> raise ArgumentError, "Duplicate filter option: #{inspect(key)}"
       end)
       |> elem(1)
     end)
   end
+
+  defp transform_filter_option!(:from_block, value),
+    do: {"fromBlock", from_term_quantity_or_tag!(value)}
+
+  defp transform_filter_option!(:to_block, value),
+    do: {"toBlock", from_term_quantity_or_tag!(value)}
+
+  defp transform_filter_option!(:block_hash, value),
+    do: {"blockHash", EthereumApi.Types.Data32.from_term!(value)}
+
+  defp transform_filter_option!(:address, value) do
+    transformed_value =
+      if is_list(value) do
+        Enum.map(value, &EthereumApi.Types.Data20.from_term!/1)
+      else
+        EthereumApi.Types.Data20.from_term!(value)
+      end
+
+    {"address", transformed_value}
+  end
+
+  defp transform_filter_option!(:topics, value) do
+    transformed_value =
+      Enum.map(value, fn topic ->
+        if is_list(topic) do
+          Enum.map(topic, &EthereumApi.Types.Data32.from_term!/1)
+        else
+          EthereumApi.Types.Data32.from_term!(topic)
+        end
+      end)
+
+    {"topics", transformed_value}
+  end
+
+  defp transform_filter_option!(key, _value),
+    do: raise(ArgumentError, "Invalid filter option: #{inspect(key)}")
 
   defp parse_filer_result(response) do
     case response do
