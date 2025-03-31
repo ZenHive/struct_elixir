@@ -5,7 +5,7 @@ defmodule EthereumApi do
       %{
         method: "web3_clientVersion",
         doc: "Returns the current client version.",
-        response_type: {:type_alias, String.t()},
+        response_type: String.t(),
         response_parser: &Types.Str.from_term/1
       },
       %{
@@ -18,25 +18,25 @@ defmodule EthereumApi do
         """,
         args: {data, EthereumApi.Types.Data.t()},
         args_transformer!: &EthereumApi.Types.Data.from_term!/1,
-        response_type: {:type_alias, String.t()},
+        response_type: String.t(),
         response_parser: &EthereumApi.Types.Data.from_term/1
       },
       %{
         method: "net_version",
         doc: "Returns the current network id.",
-        response_type: {:type_alias, String.t()},
+        response_type: String.t(),
         response_parser: &Types.Str.from_term/1
       },
       %{
         method: "net_listening",
         doc: "Returns true if client is actively listening for network connections.",
-        response_type: {:type_alias, Types.Bool.t()},
+        response_type: Types.Bool.t(),
         response_parser: &Types.Bool.from_term/1
       },
       %{
         method: "net_peerCount",
         doc: "Returns number of peers currently connected to the client.",
-        response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
+        response_type: EthereumApi.Types.Quantity.t(),
         response_parser: &EthereumApi.Types.Quantity.from_term/1
       },
       %{
@@ -47,13 +47,13 @@ defmodule EthereumApi do
           Note that this method is not available in Geth
           (see https://github.com/ethereum/go-ethereum/pull/22064#issuecomment-788682924).
         """,
-        response_type: {:type_alias, String.t()},
+        response_type: String.t(),
         response_parser: &Types.Str.from_term/1
       },
       %{
         method: "eth_syncing",
         doc: "Returns an object with data about the sync status or false.",
-        response_type: {:type_alias, false | EthereumApi.Types.Syncing.t()},
+        response_type: false | EthereumApi.Types.Syncing.t(),
         response_parser: fn
           false ->
             {:ok, false}
@@ -65,7 +65,7 @@ defmodule EthereumApi do
       %{
         method: "eth_chainId",
         doc: "Returns the chain ID used for signing replay-protected transactions.",
-        response_type: {:type_alias, EthereumApi.Types.Data.t()},
+        response_type: EthereumApi.Types.Data.t(),
         response_parser: &EthereumApi.Types.Data.from_term/1
       },
       %{
@@ -75,7 +75,7 @@ defmodule EthereumApi do
           This can only return true for proof-of-work networks and may not be available in some
           clients since The Merge.
         """,
-        response_type: {:type_alias, Types.Bool.t()},
+        response_type: Types.Bool.t(),
         response_parser: &Types.Bool.from_term/1
       },
       %{
@@ -85,7 +85,7 @@ defmodule EthereumApi do
           This can only return true for proof-of-work networks and may not be available in some
           clients since The Merge.
         """,
-        response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
+        response_type: EthereumApi.Types.Quantity.t(),
         response_parser: &EthereumApi.Types.Quantity.from_term/1
       },
       %{
@@ -95,13 +95,13 @@ defmodule EthereumApi do
           For example, the Besu client examines the last 100 blocks and returns the median gas unit
           price by default.
         """,
-        response_type: {:type_alias, EthereumApi.Types.Wei.t()},
+        response_type: EthereumApi.Types.Wei.t(),
         response_parser: &EthereumApi.Types.Wei.from_term/1
       },
       %{
         method: "eth_accounts",
         doc: "Returns a list of addresses owned by client.",
-        response_type: {:type_alias, [EthereumApi.Types.Data20.t()]},
+        response_type: [EthereumApi.Types.Data20.t()],
         response_parser: fn
           list when is_list(list) ->
             result =
@@ -126,7 +126,7 @@ defmodule EthereumApi do
       %{
         method: "eth_blockNumber",
         doc: "Returns the number of the most recent block.",
-        response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
+        response_type: EthereumApi.Types.Quantity.t(),
         response_parser: &EthereumApi.Types.Quantity.from_term/1
       },
       %{
@@ -149,7 +149,7 @@ defmodule EthereumApi do
             from_term_quantity_or_tag!(block_number_or_tag)
           ]
         end,
-        response_type: {:type_alias, EthereumApi.Types.Wei.t()},
+        response_type: EthereumApi.Types.Wei.t(),
         response_parser: &EthereumApi.Types.Wei.from_term/1
       },
       %{
@@ -177,7 +177,7 @@ defmodule EthereumApi do
             from_term_quantity_or_tag!(block_number_or_tag)
           ]
         end,
-        response_type: {:type_alias, EthereumApi.Types.Data.t()},
+        response_type: EthereumApi.Types.Data.t(),
         response_parser: &EthereumApi.Types.Data.from_term/1
       },
       %{
@@ -200,7 +200,7 @@ defmodule EthereumApi do
             from_term_quantity_or_tag!(block_number_or_tag)
           ]
         end,
-        response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
+        response_type: EthereumApi.Types.Quantity.t(),
         response_parser: &EthereumApi.Types.Quantity.from_term/1
       },
       %{
@@ -213,7 +213,7 @@ defmodule EthereumApi do
         """,
         args: {block_hash, EthereumApi.Types.Data32.t()},
         args_transformer!: &EthereumApi.Types.Data32.from_term!/1,
-        response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
+        response_type: EthereumApi.Types.Quantity.t(),
         response_parser: &EthereumApi.Types.Quantity.from_term/1
       },
       %{
@@ -227,7 +227,7 @@ defmodule EthereumApi do
         """,
         args: {block_number_or_tag, EthereumApi.Types.Quantity.t() | EthereumApi.Types.Tag.t()},
         args_transformer!: &from_term_quantity_or_tag!/1,
-        response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
+        response_type: EthereumApi.Types.Quantity.t(),
         response_parser: &EthereumApi.Types.Quantity.from_term/1
       },
       %{
@@ -240,7 +240,7 @@ defmodule EthereumApi do
         """,
         args: {block_hash, EthereumApi.Types.Data32.t()},
         args_transformer!: &EthereumApi.Types.Data32.from_term!/1,
-        response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
+        response_type: EthereumApi.Types.Quantity.t(),
         response_parser: &EthereumApi.Types.Quantity.from_term/1
       },
       %{
@@ -254,7 +254,7 @@ defmodule EthereumApi do
         """,
         args: {block_number_or_tag, EthereumApi.Types.Quantity.t() | EthereumApi.Types.Tag.t()},
         args_transformer!: &from_term_quantity_or_tag!/1,
-        response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
+        response_type: EthereumApi.Types.Quantity.t(),
         response_parser: &EthereumApi.Types.Quantity.from_term/1
       },
       %{
@@ -277,7 +277,7 @@ defmodule EthereumApi do
             from_term_quantity_or_tag!(block_number_or_tag)
           ]
         end,
-        response_type: {:type_alias, EthereumApi.Types.Data.t()},
+        response_type: EthereumApi.Types.Data.t(),
         response_parser: &EthereumApi.Types.Data.from_term/1
       },
       %{
@@ -306,7 +306,7 @@ defmodule EthereumApi do
             EthereumApi.Types.Data.from_term!(data)
           ]
         end,
-        response_type: {:type_alias, EthereumApi.Types.Data.t()},
+        response_type: EthereumApi.Types.Data.t(),
         response_parser: &EthereumApi.Types.Data.from_term/1
       },
       %{
@@ -352,7 +352,7 @@ defmodule EthereumApi do
             opts
           )
         end,
-        response_type: {:type_alias, EthereumApi.Types.Data.t()},
+        response_type: EthereumApi.Types.Data.t(),
         response_parser: &EthereumApi.Types.Data.from_term/1
       },
       %{
@@ -400,7 +400,7 @@ defmodule EthereumApi do
             opts
           )
         end,
-        response_type: {:type_alias, EthereumApi.Types.Data32.t()},
+        response_type: EthereumApi.Types.Data32.t(),
         response_parser: &EthereumApi.Types.Data32.from_term/1
       },
       %{
@@ -418,7 +418,7 @@ defmodule EthereumApi do
         """,
         args: {signed_transaction_data, EthereumApi.Types.Data.t()},
         args_transformer!: &EthereumApi.Types.Data.from_term!/1,
-        response_type: {:type_alias, EthereumApi.Types.Data32.t()},
+        response_type: EthereumApi.Types.Data32.t(),
         response_parser: &EthereumApi.Types.Data32.from_term/1
       },
       %{
@@ -465,7 +465,7 @@ defmodule EthereumApi do
             from_term_quantity_or_tag!(block_number_or_tag)
           ]
         end,
-        response_type: {:type_alias, EthereumApi.Types.Data.t()},
+        response_type: EthereumApi.Types.Data.t(),
         response_parser: &EthereumApi.Types.Data.from_term/1
       },
       %{
@@ -513,7 +513,7 @@ defmodule EthereumApi do
             [transaction]
           end
         end,
-        response_type: {:type_alias, EthereumApi.Types.Wei.t()},
+        response_type: EthereumApi.Types.Wei.t(),
         response_parser: &EthereumApi.Types.Wei.from_term/1
       },
       %{
@@ -535,7 +535,7 @@ defmodule EthereumApi do
             Types.Bool.from_term!(full_transaction_objects?)
           ]
         end,
-        response_type: {:type_alias, Option.t(EthereumApi.Types.Block.t())},
+        response_type: Option.t(EthereumApi.Types.Block.t()),
         response_parser: &EthereumApi.Types.Block.from_term_optional/1
       },
       %{
@@ -558,7 +558,7 @@ defmodule EthereumApi do
             Types.Bool.from_term!(full_transaction_objects?)
           ]
         end,
-        response_type: {:type_alias, Option.t(EthereumApi.Types.Block.t())},
+        response_type: Option.t(EthereumApi.Types.Block.t()),
         response_parser: &EthereumApi.Types.Block.from_term_optional/1
       },
       %{
@@ -571,7 +571,7 @@ defmodule EthereumApi do
         """,
         args: {transaction_hash, EthereumApi.Types.Data32.t()},
         args_transformer!: &EthereumApi.Types.Data32.from_term!/1,
-        response_type: {:type_alias, Option.t(EthereumApi.Types.Transaction.t())},
+        response_type: Option.t(EthereumApi.Types.Transaction.t()),
         response_parser: &EthereumApi.Types.Transaction.from_term_optional/1
       },
       %{
@@ -593,7 +593,7 @@ defmodule EthereumApi do
             EthereumApi.Types.Quantity.from_term!(transaction_index)
           ]
         end,
-        response_type: {:type_alias, Option.t(EthereumApi.Types.Transaction.t())},
+        response_type: Option.t(EthereumApi.Types.Transaction.t()),
         response_parser: &EthereumApi.Types.Transaction.from_term_optional/1
       },
       %{
@@ -616,7 +616,7 @@ defmodule EthereumApi do
             EthereumApi.Types.Quantity.from_term!(transaction_index)
           ]
         end,
-        response_type: {:type_alias, Option.t(EthereumApi.Types.Transaction.t())},
+        response_type: Option.t(EthereumApi.Types.Transaction.t()),
         response_parser: &EthereumApi.Types.Transaction.from_term_optional/1
       },
       %{
@@ -634,7 +634,7 @@ defmodule EthereumApi do
         """,
         args: {transaction_hash, EthereumApi.Types.Data32.t()},
         args_transformer!: &EthereumApi.Types.Data32.from_term!/1,
-        response_type: {:type_alias, Option.t(EthereumApi.Types.TransactionReceipt.t())},
+        response_type: Option.t(EthereumApi.Types.TransactionReceipt.t()),
         response_parser: &EthereumApi.Types.TransactionReceipt.from_term_optional/1
       },
       %{
@@ -659,7 +659,7 @@ defmodule EthereumApi do
             EthereumApi.Types.Quantity.from_term!(uncle_index)
           ]
         end,
-        response_type: {:type_alias, Option.t(EthereumApi.Types.Block.t())},
+        response_type: Option.t(EthereumApi.Types.Block.t()),
         response_parser: &(IO.inspect(&1) |> EthereumApi.Types.Block.from_term_optional())
       },
       %{
@@ -685,7 +685,7 @@ defmodule EthereumApi do
             EthereumApi.Types.Quantity.from_term!(uncle_index)
           ]
         end,
-        response_type: {:type_alias, Option.t(EthereumApi.Types.Block.t())},
+        response_type: Option.t(EthereumApi.Types.Block.t()),
         response_parser: &EthereumApi.Types.Block.from_term_optional/1
       },
       %{
@@ -723,7 +723,7 @@ defmodule EthereumApi do
              {:topics, [EthereumApi.Types.Data32.t() | [EthereumApi.Types.Data32.t()]]}
            ]},
         args_transformer!: &create_filter_options_object!/1,
-        response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
+        response_type: EthereumApi.Types.Quantity.t(),
         response_parser: &EthereumApi.Types.Quantity.from_term/1
       },
       %{
@@ -735,7 +735,7 @@ defmodule EthereumApi do
           # Returns
           - Quantity - A filter id
         """,
-        response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
+        response_type: EthereumApi.Types.Quantity.t(),
         response_parser: &EthereumApi.Types.Quantity.from_term/1
       },
       %{
@@ -747,7 +747,7 @@ defmodule EthereumApi do
           # Returns
           - Quantity - A filter id
         """,
-        response_type: {:type_alias, EthereumApi.Types.Quantity.t()},
+        response_type: EthereumApi.Types.Quantity.t(),
         response_parser: &EthereumApi.Types.Quantity.from_term/1
       },
       %{
@@ -764,7 +764,7 @@ defmodule EthereumApi do
         """,
         args: {filter_id, EthereumApi.Types.Quantity.t()},
         args_transformer!: &EthereumApi.Types.Quantity.from_term!/1,
-        response_type: {:type_alias, Types.Bool.t()},
+        response_type: Types.Bool.t(),
         response_parser: &Types.Bool.from_term/1
       },
       %{
@@ -806,7 +806,7 @@ defmodule EthereumApi do
         """,
         args: {filter_id, EthereumApi.Types.Quantity.t()},
         args_transformer!: &EthereumApi.Types.Quantity.from_term!/1,
-        response_type: {:type_alias, [EthereumApi.Types.Log.t()]},
+        response_type: [EthereumApi.Types.Log.t()],
         response_parser: &EthereumApi.Types.Log.from_term_list/1
       }
     ]

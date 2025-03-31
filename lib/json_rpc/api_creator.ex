@@ -1,11 +1,15 @@
 defmodule JsonRpc.ApiCreator do
-  defmacro __using__({client, methods}, debug \\ false) do
-    module = __CALLER__.module
-
+  defmacro __using__({:{}, _, [:debug, client, methods]}) do
     methods
     |> List.wrap()
-    |> Enum.map(&generate_ast(&1, client, module))
-    |> print_debug_code(module, debug)
+    |> Enum.map(&generate_ast(&1, client, __CALLER__.module))
+    |> print_debug_code(__CALLER__.module)
+  end
+
+  defmacro __using__({client, methods}) do
+    methods
+    |> List.wrap()
+    |> Enum.map(&generate_ast(&1, client, __CALLER__.module))
   end
 
   defp generate_ast({:%{}, _, opts}, client, module) do
@@ -22,18 +26,14 @@ defmodule JsonRpc.ApiCreator do
     args_transformer! = get_args_transformer!(args, opts, method)
 
     func_name = method |> to_snake_case() |> String.to_atom()
-    func_path = Module.concat(module, func_name)
-    response_module = Module.concat([module, Response, to_camel_case(method)])
+    response_type_name = String.to_atom("#{func_name}_response") |> Macro.var(module)
 
     quote do
-      defmodule unquote(response_module) do
-        @moduledoc "Defines the type returned by #{unquote(func_path)}()"
-        unquote(generate_response_type_ast(response_type, method))
-      end
+      @type unquote(response_type_name) :: unquote(response_type)
 
       @doc unquote(doc)
       @spec unquote(func_name)(unquote_splicing(args_spec)) ::
-              Result.t(unquote(response_module).t(), any())
+              Result.t(unquote(response_type_name), any())
       def unquote(func_name)(unquote_splicing(args)) do
         unquote(
           generate_function_body_ast(
@@ -58,17 +58,6 @@ defmodule JsonRpc.ApiCreator do
           throw("Missing key :args_transformer! for method #{method}")
     end
   end
-
-  defp generate_response_type_ast({:type_alias, t}, _method),
-    do: quote(do: @type(t :: unquote(t)))
-
-  defp generate_response_type_ast({:json_struct, t}, _method),
-    do: quote(do: use(JsonStruct, unquote(t)))
-
-  defp generate_response_type_ast({:struct, t}, _method), do: quote(do: defstruct(unquote(t)))
-
-  defp generate_response_type_ast(_invalid, method),
-    do: throw("Invalid response_type for method #{method}")
 
   defp generate_function_body_ast(
          [],
@@ -104,11 +93,9 @@ defmodule JsonRpc.ApiCreator do
     end
   end
 
-  defp print_debug_code(ast, module, debug) do
-    if debug do
-      readable_code = ast |> Macro.to_string() |> Code.format_string!() |> IO.iodata_to_binary()
-      IO.puts("Generated code for module #{module} #{readable_code}")
-    end
+  defp print_debug_code(ast, module) do
+    readable_code = ast |> Macro.to_string() |> Code.format_string!() |> IO.iodata_to_binary()
+    IO.puts("Generated code for module #{module} #{readable_code}")
 
     ast
   end
@@ -122,17 +109,5 @@ defmodule JsonRpc.ApiCreator do
       "\\1_\\2"
     )
     |> String.downcase()
-  end
-
-  defp to_camel_case(str) do
-    str
-    # Because String.capitalize() lowercases all chars that aren't the first (ie: fooBar -> Foobar)
-    |> to_snake_case()
-    # Split by underscores
-    |> String.split(~r/[_]/)
-    # Capitalize each word
-    |> Enum.map(&String.capitalize/1)
-    # Join them back together
-    |> Enum.join("")
   end
 end
