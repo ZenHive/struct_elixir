@@ -146,7 +146,7 @@ defmodule EthereumApi do
         args_transformer!: fn address, block_number_or_tag ->
           [
             EthereumApi.Types.Data20.from_term!(address),
-            from_term_quantity_or_tag!(block_number_or_tag)
+            quantity_or_tag_from_term!(block_number_or_tag)
           ]
         end,
         response_type: EthereumApi.Types.Wei.t(),
@@ -174,7 +174,7 @@ defmodule EthereumApi do
           [
             EthereumApi.Types.Data20.from_term!(address),
             EthereumApi.Types.Quantity.from_term!(position),
-            from_term_quantity_or_tag!(block_number_or_tag)
+            quantity_or_tag_from_term!(block_number_or_tag)
           ]
         end,
         response_type: EthereumApi.Types.Data.t(),
@@ -197,7 +197,7 @@ defmodule EthereumApi do
         args_transformer!: fn address, block_number_or_tag ->
           [
             EthereumApi.Types.Data20.from_term!(address),
-            from_term_quantity_or_tag!(block_number_or_tag)
+            quantity_or_tag_from_term!(block_number_or_tag)
           ]
         end,
         response_type: EthereumApi.Types.Quantity.t(),
@@ -226,7 +226,7 @@ defmodule EthereumApi do
             #{inspect(EthereumApi.Types.Tag.tags())}
         """,
         args: {block_number_or_tag, EthereumApi.Types.Quantity.t() | EthereumApi.Types.Tag.t()},
-        args_transformer!: &from_term_quantity_or_tag!/1,
+        args_transformer!: &quantity_or_tag_from_term!/1,
         response_type: EthereumApi.Types.Quantity.t(),
         response_parser: &EthereumApi.Types.Quantity.from_term/1
       },
@@ -253,7 +253,7 @@ defmodule EthereumApi do
             #{inspect(EthereumApi.Types.Tag.tags())}
         """,
         args: {block_number_or_tag, EthereumApi.Types.Quantity.t() | EthereumApi.Types.Tag.t()},
-        args_transformer!: &from_term_quantity_or_tag!/1,
+        args_transformer!: &quantity_or_tag_from_term!/1,
         response_type: EthereumApi.Types.Quantity.t(),
         response_parser: &EthereumApi.Types.Quantity.from_term/1
       },
@@ -274,7 +274,7 @@ defmodule EthereumApi do
         args_transformer!: fn address, block_number_or_tag ->
           [
             EthereumApi.Types.Data20.from_term!(address),
-            from_term_quantity_or_tag!(block_number_or_tag)
+            quantity_or_tag_from_term!(block_number_or_tag)
           ]
         end,
         response_type: EthereumApi.Types.Data.t(),
@@ -462,7 +462,7 @@ defmodule EthereumApi do
         args_transformer!: fn {{:to, to}, opts}, block_number_or_tag ->
           [
             create_transaction_object!(%{to: to}, opts),
-            from_term_quantity_or_tag!(block_number_or_tag)
+            quantity_or_tag_from_term!(block_number_or_tag)
           ]
         end,
         response_type: EthereumApi.Types.Data.t(),
@@ -508,7 +508,7 @@ defmodule EthereumApi do
           transaction = create_transaction_object!(%{}, transaction)
 
           if block_number_or_tag do
-            [transaction, from_term_quantity_or_tag!(block_number_or_tag)]
+            [transaction, quantity_or_tag_from_term!(block_number_or_tag)]
           else
             [transaction]
           end
@@ -554,7 +554,7 @@ defmodule EthereumApi do
         ],
         args_transformer!: fn block_number_or_tag, full_transaction_objects? ->
           [
-            from_term_quantity_or_tag!(block_number_or_tag),
+            quantity_or_tag_from_term!(block_number_or_tag),
             Types.Bool.from_term!(full_transaction_objects?)
           ]
         end,
@@ -612,7 +612,7 @@ defmodule EthereumApi do
         ],
         args_transformer!: fn block_number_or_tag, transaction_index ->
           [
-            from_term_quantity_or_tag!(block_number_or_tag),
+            quantity_or_tag_from_term!(block_number_or_tag),
             EthereumApi.Types.Quantity.from_term!(transaction_index)
           ]
         end,
@@ -681,7 +681,7 @@ defmodule EthereumApi do
         ],
         args_transformer!: fn block_number_or_tag, uncle_index ->
           [
-            from_term_quantity_or_tag!(block_number_or_tag),
+            quantity_or_tag_from_term!(block_number_or_tag),
             EthereumApi.Types.Quantity.from_term!(uncle_index)
           ]
         end,
@@ -916,10 +916,10 @@ defmodule EthereumApi do
   end
 
   defp transform_filter_option!(:from_block, value),
-    do: {"fromBlock", from_term_quantity_or_tag!(value)}
+    do: {"fromBlock", quantity_or_tag_from_term!(value)}
 
   defp transform_filter_option!(:to_block, value),
-    do: {"toBlock", from_term_quantity_or_tag!(value)}
+    do: {"toBlock", quantity_or_tag_from_term!(value)}
 
   defp transform_filter_option!(:block_hash, value),
     do: {"blockHash", EthereumApi.Types.Data32.from_term!(value)}
@@ -976,7 +976,7 @@ defmodule EthereumApi do
     end
   end
 
-  defp from_term_quantity_or_tag!(value) do
+  defp quantity_or_tag_from_term!(value) do
     EthereumApi.Types.Quantity.from_term(value)
     |> Result.unwrap_or_else(fn _err ->
       EthereumApi.Types.Tag.from_term(value)
