@@ -1,4 +1,4 @@
-defmodule Types do
+defmodule Struct.Types do
   @moduledoc """
   `Types` is a module that provides a set of modules used by the `Struct` module
   see `Struct` for more information.

@@ -6,7 +6,7 @@ defmodule EthereumApi do
         method: "web3_clientVersion",
         doc: "Returns the current client version.",
         response_type: String.t(),
-        response_parser: &Types.Str.from_term/1
+        response_parser: &Struct.Types.Str.from_term/1
       },
       %{
         method: "web3_sha3",
@@ -25,13 +25,13 @@ defmodule EthereumApi do
         method: "net_version",
         doc: "Returns the current network id.",
         response_type: String.t(),
-        response_parser: &Types.Str.from_term/1
+        response_parser: &Struct.Types.Str.from_term/1
       },
       %{
         method: "net_listening",
         doc: "Returns true if client is actively listening for network connections.",
-        response_type: Types.Bool.t(),
-        response_parser: &Types.Bool.from_term/1
+        response_type: Struct.Types.Bool.t(),
+        response_parser: &Struct.Types.Bool.from_term/1
       },
       %{
         method: "net_peerCount",
@@ -48,7 +48,7 @@ defmodule EthereumApi do
           (see https://github.com/ethereum/go-ethereum/pull/22064#issuecomment-788682924).
         """,
         response_type: String.t(),
-        response_parser: &Types.Str.from_term/1
+        response_parser: &Struct.Types.Str.from_term/1
       },
       %{
         method: "eth_syncing",
@@ -75,8 +75,8 @@ defmodule EthereumApi do
           This can only return true for proof-of-work networks and may not be available in some
           clients since The Merge.
         """,
-        response_type: Types.Bool.t(),
-        response_parser: &Types.Bool.from_term/1
+        response_type: Struct.Types.Bool.t(),
+        response_parser: &Struct.Types.Bool.from_term/1
       },
       %{
         method: "eth_hashrate",
@@ -527,12 +527,12 @@ defmodule EthereumApi do
         """,
         args: [
           {block_hash, EthereumApi.Types.Data32.t()},
-          {full_transaction_objects?, Types.Bool.t()}
+          {full_transaction_objects?, Struct.Types.Bool.t()}
         ],
         args_transformer!: fn block_hash, full_transaction_objects? ->
           [
             EthereumApi.Types.Data32.from_term!(block_hash),
-            Types.Bool.from_term!(full_transaction_objects?)
+            Struct.Types.Bool.from_term!(full_transaction_objects?)
           ]
         end,
         response_type: Option.t(EthereumApi.Types.Block.t()),
@@ -550,12 +550,12 @@ defmodule EthereumApi do
         """,
         args: [
           {block_number_or_tag, EthereumApi.Types.Quantity.t() | EthereumApi.Types.Tag.t()},
-          {full_transaction_objects?, Types.Bool.t()}
+          {full_transaction_objects?, Struct.Types.Bool.t()}
         ],
         args_transformer!: fn block_number_or_tag, full_transaction_objects? ->
           [
             quantity_or_tag_from_term!(block_number_or_tag),
-            Types.Bool.from_term!(full_transaction_objects?)
+            Struct.Types.Bool.from_term!(full_transaction_objects?)
           ]
         end,
         response_type: Option.t(EthereumApi.Types.Block.t()),
@@ -764,8 +764,8 @@ defmodule EthereumApi do
         """,
         args: {filter_id, EthereumApi.Types.Quantity.t()},
         args_transformer!: &EthereumApi.Types.Quantity.from_term!/1,
-        response_type: Types.Bool.t(),
-        response_parser: &Types.Bool.from_term/1
+        response_type: Struct.Types.Bool.t(),
+        response_parser: &Struct.Types.Bool.from_term/1
       },
       %{
         method: "eth_getFilterChanges",

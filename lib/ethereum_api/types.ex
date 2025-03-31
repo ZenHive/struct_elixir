@@ -275,7 +275,7 @@ defmodule EthereumApi.Types do
     use Struct, {
       [Struct.FromTerm],
       [
-        removed: Types.Bool,
+        removed: Struct.Types.Bool,
         log_index: [type: EthereumApi.Types.Quantity, "Struct.FromTerm": [keys: "logIndex"]],
         transaction_index: [
           type: EthereumApi.Types.Quantity,

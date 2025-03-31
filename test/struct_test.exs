@@ -4,9 +4,9 @@ defmodule StructTest do
 
   defmodule Simple do
     use Struct,
-      basic_type: Types.Str,
-      optional_type: {:option, Types.Int},
-      list_type: {:list, Types.Str}
+      basic_type: Struct.Types.Str,
+      optional_type: {:option, Struct.Types.Int},
+      list_type: {:list, Struct.Types.Str}
   end
 
   defmodule EmptyDerives do
@@ -14,7 +14,7 @@ defmodule StructTest do
       [],
       [
         basic_type: [
-          type: Types.Str,
+          type: Struct.Types.Str,
           "Struct.FromTerm": "basicType"
         ]
       ]
@@ -27,7 +27,7 @@ defmodule StructTest do
       [],
       [
         basic_type: [
-          type: Types.Str,
+          type: Struct.Types.Str,
           "Struct.FromTerm": "basicType"
         ]
       ]
@@ -38,7 +38,7 @@ defmodule StructTest do
     use Struct, {
       [Struct.FromTerm],
       [
-        basic_type: Types.Str
+        basic_type: Struct.Types.Str
       ]
     }
   end
@@ -48,7 +48,7 @@ defmodule StructTest do
       [Struct.FromTerm],
       [
         basic_type: [
-          type: Types.Str,
+          type: Struct.Types.Str,
           "Struct.FromTerm": "basicType"
         ]
       ]
@@ -59,8 +59,8 @@ defmodule StructTest do
     use Struct, {
       [Struct.FromTerm],
       [
-        basic_type: Types.Str,
-        nested_type: {:option, {:list, Types.Str}},
+        basic_type: Struct.Types.Str,
+        nested_type: {:option, {:list, Struct.Types.Str}},
         nested_type_custom_key: [
           type: {:option, {:list, Simple}},
           "Struct.FromTerm": "nestedTypeCustomKey"

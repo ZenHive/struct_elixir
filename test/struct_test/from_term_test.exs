@@ -5,7 +5,7 @@ defmodule StructTest.FromTermTest do
   defmodule Bar do
     use Struct, {
       [Struct.FromTerm],
-      [basic_type: Types.Str]
+      [basic_type: Struct.Types.Str]
     }
   end
 
@@ -14,16 +14,16 @@ defmodule StructTest.FromTermTest do
       :debug,
       [Struct.FromTerm],
       [
-        basic_type: Types.Str,
+        basic_type: Struct.Types.Str,
         basic_type_custom_key: [
-          type: Types.Str,
+          type: Struct.Types.Str,
           "Struct.FromTerm": [keys: "basicTypeCustomKey"]
         ],
-        optional_type: {:option, Types.Int},
-        list_type: {:list, Types.Str},
-        nested_type: {:option, {:list, Types.Str}},
+        optional_type: {:option, Struct.Types.Int},
+        list_type: {:list, Struct.Types.Str},
+        nested_type: {:option, {:list, Struct.Types.Str}},
         nested_type_custom_key: [
-          type: {:option, {:list, Types.Str}},
+          type: {:option, {:list, Struct.Types.Str}},
           "Struct.FromTerm": [keys: "CompletelyCustomKey"]
         ],
         bar: Bar
