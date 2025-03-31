@@ -30,15 +30,29 @@ defmodule JsonRpc.Client.WebSocket.Handler do
 
   @spec handle_frame(any(), State.t()) ::
           {:reply, :pong | {:pong | any()}, State.t()} | {:ok, State.t()}
-  def handle_frame(:ping, state) do
+  def handle_frame(message, state) do
+    try do
+      do_handle_frame(message, state)
+    rescue
+      error ->
+        # TODO use a logger
+        IO.puts(
+          "Error in handle_frame/2 with message #{inspect(message)}, state: #{inspect(state)}, error: #{inspect(error)}"
+        )
+
+        {:ok, state}
+    end
+  end
+
+  defp do_handle_frame(:ping, state) do
     {:reply, :pong, state}
   end
 
-  def handle_frame({:ping, value}, state) do
+  defp do_handle_frame({:ping, value}, state) do
     {:reply, {:pong, value}, state}
   end
 
-  def handle_frame({_, data}, state) do
+  defp do_handle_frame({_, data}, state) do
     # TODO use a logger
     IO.puts("Received a frame: #{inspect(data)}")
 
@@ -90,22 +104,36 @@ defmodule JsonRpc.Client.WebSocket.Handler do
   end
 
   @spec handle_cast(any(), State.t()) :: {:reply, any(), State.t()}
-  def handle_cast({:call_with_params, {pid, method, params}}, state) do
+  def handle_cast(message, state) do
+    try do
+      do_handle_cast(message, state)
+    rescue
+      error ->
+        # TODO use a logger
+        IO.puts(
+          "Error in handle_cast/2 with message #{inspect(message)}, state: #{inspect(state)}, error: #{inspect(error)}"
+        )
+
+        {:ok, state}
+    end
+  end
+
+  defp do_handle_cast({:call_with_params, {pid, method, params}}, state) do
     JsonRpc.Request.new_call_with_params(method, params, state.next_id)
     |> send_call_request_and_update_state(pid, state)
   end
 
-  def handle_cast({:call_without_params, {pid, method}}, state) do
+  defp do_handle_cast({:call_without_params, {pid, method}}, state) do
     JsonRpc.Request.new_call_without_params(method, state.next_id)
     |> send_call_request_and_update_state(pid, state)
   end
 
-  def handle_cast({:notify_with_params, {method, params}}, state) do
+  defp do_handle_cast({:notify_with_params, {method, params}}, state) do
     JsonRpc.Request.new_notify_with_params(method, params)
     |> send_notify_request(state)
   end
 
-  def handle_cast({:notify_without_params, method}, state) do
+  defp do_handle_cast({:notify_without_params, method}, state) do
     JsonRpc.Request.new_notify_without_params(method)
     |> send_notify_request(state)
   end
