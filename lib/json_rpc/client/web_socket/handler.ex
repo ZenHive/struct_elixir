@@ -103,7 +103,7 @@ defmodule JsonRpc.Client.WebSocket.Handler do
     end
   end
 
-  @spec handle_cast(any(), State.t()) :: {:reply, any(), State.t()}
+  @spec handle_cast(any(), State.t()) :: {:reply, any(), State.t()} | {:ok, State.t()}
   def handle_cast(message, state) do
     try do
       do_handle_cast(message, state)

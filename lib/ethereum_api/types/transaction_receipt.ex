@@ -93,7 +93,7 @@ defmodule EthereumApi.Types.TransactionReceipt do
         type: {:option, EthereumApi.Types.Data20},
         "Struct.FromTerm": [keys: "contractAddress"]
       ],
-      logs: {:list, Log},
+      logs: {:list, EthereumApi.Types.Log},
       logs_bloom: [
         type: EthereumApi.Types.Data256,
         "Struct.FromTerm": [keys: "logsBloom"]
