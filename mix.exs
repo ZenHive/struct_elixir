@@ -33,20 +33,10 @@ defmodule EthereumApi.MixProject do
       {:ex_doc, "~> 0.37.3", only: :dev, runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
 
-      {:httpoison, "~> 2.2.2"},
-      {:poison, "~> 6.0.0"},
-
       {:result, git: "git@github.com:ZenHive/result_elixir.git", tag: "v0.1.0"},
       {:option, git: "git@github.com:ZenHive/option_elixir.git", tag: "v0.1.0"},
-
-      ## Web socket client
-      {:websockex, "~> 0.4.3"},
-
-      # Tests
-
-      ## Web socket server
-      {:websock_adapter, "~> 0.5.8", only: [:test]},
-      {:bandit, "~> 1.6.8", only: [:test]}
+      {:json_rpc, git: "git@github.com:ZenHive/json_rpc_elixir.git", tag: "v0.1.0"},
+      
     ]
   end
 end
