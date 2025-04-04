@@ -36,6 +36,8 @@ defmodule EthereumApi.MixProject do
       {:httpoison, "~> 2.2.2"},
       {:poison, "~> 6.0.0"},
 
+      {:result, git: "git@github.com:ZenHive/result_elixir.git", tag: "v0.1.0"},
+
       ## Web socket client
       {:websockex, "~> 0.4.3"},
 
