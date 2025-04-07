@@ -11,9 +11,7 @@ defmodule EthereumApi.MixProject do
       dialyzer: [
         flags: [
           :unmatched_returns,
-          :extra_return,
-          :missing_return,
-          :unmatched_returns
+          :missing_return
         ]
       ]
     ]
@@ -35,7 +33,7 @@ defmodule EthereumApi.MixProject do
 
       {:result, git: "git@github.com:ZenHive/result_elixir.git", tag: "v0.1.0"},
       {:option, git: "git@github.com:ZenHive/option_elixir.git", tag: "v0.1.0"},
-      {:json_rpc, git: "git@github.com:ZenHive/json_rpc_elixir.git", tag: "v0.1.0"},
+      {:json_rpc, git: "git@github.com:ZenHive/json_rpc_elixir.git", tag: "v0.2.0"},
       
     ]
   end
