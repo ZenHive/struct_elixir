@@ -1,6 +1,6 @@
 # EthereumApi
 
-**TODO: Add description**
+Library to interact with ethereum nodes through json rpc
 
 ## Installation
 
@@ -10,7 +10,7 @@ by adding `ethereum_api` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:ethereum_api, "~> 0.1.0"}
+    {:ethereum_api, git: "https://github.com/ZenHive/ethereum-api-elixir.git", tag: "v0.1.0-beta1"},
   ]
 end
 ```
