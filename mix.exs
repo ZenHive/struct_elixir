@@ -4,7 +4,7 @@ defmodule EthereumApi.MixProject do
   def project do
     [
       app: :ethereum_api,
-      version: "0.1.0-beta1",
+      version: "0.1.0-beta2",
       elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
