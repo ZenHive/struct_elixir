@@ -1,5 +1,5 @@
 defmodule EthereumApi do
-  @spec start_link(JsonRpc.Client.WebSocket.conn_info(), [JsonRpc.Client.Websocket.option()]) ::
+  @spec start_link(JsonRpc.Client.WebSocket.conn_info(), [JsonRpc.Client.WebSocket.option()]) ::
           Result.t(pid(), term())
   def start_link(url, opts \\ []) do
     JsonRpc.Client.WebSocket.start_link(url, opts)
