@@ -346,10 +346,10 @@ defmodule EthereumApi do
       ],
       args_transformer!: fn from, data, opts ->
         create_transaction_object!(
-          %{
+          [
             from: EthereumApi.Types.Data20.from_term!(from),
             data: EthereumApi.Types.Data.from_term!(data)
-          },
+          ],
           opts
         )
       end,
@@ -394,10 +394,10 @@ defmodule EthereumApi do
       ],
       args_transformer!: fn from, data, opts ->
         create_transaction_object!(
-          %{
+          [
             from: EthereumApi.Types.Data20.from_term!(from),
             data: EthereumApi.Types.Data.from_term!(data)
-          },
+          ],
           opts
         )
       end,
@@ -462,7 +462,7 @@ defmodule EthereumApi do
       ],
       args_transformer!: fn {{:to, to}, opts}, block_number_or_tag ->
         [
-          create_transaction_object!(%{to: to}, opts),
+          create_transaction_object!([to: to], opts),
           quantity_or_tag_from_term!(block_number_or_tag)
         ]
       end,
@@ -506,7 +506,7 @@ defmodule EthereumApi do
         {block_number_or_tag, EthereumApi.Types.Quantity.t() | EthereumApi.Types.Tag.t() | nil}
       ],
       args_transformer!: fn transaction, block_number_or_tag ->
-        transaction = create_transaction_object!(%{}, transaction)
+        transaction = create_transaction_object!([], transaction)
 
         if block_number_or_tag do
           [transaction, quantity_or_tag_from_term!(block_number_or_tag)]
@@ -852,37 +852,43 @@ defmodule EthereumApi do
   ]
 
   defp create_transaction_object!(transaction, opts) do
-    Enum.reduce(opts, transaction, fn {opt, value}, acc ->
+    check_elem_and_add_it_to_acc = fn {key, value}, acc ->
       {key, value} =
         cond do
-          opt in [:gas, :nonce] ->
-            {Atom.to_string(opt), EthereumApi.Types.Quantity.from_term!(value)}
+          key in [:gas, :nonce] ->
+            {Atom.to_string(key), EthereumApi.Types.Quantity.from_term!(value)}
 
-          opt == :gas_price ->
+          key == :gas_price ->
             {"gasPrice", EthereumApi.Types.Wei.from_term!(value)}
 
-          opt == :value ->
+          key == :value ->
             {"value", EthereumApi.Types.Wei.from_term!(value)}
 
-          opt in [:to, :from] ->
-            {Atom.to_string(opt), EthereumApi.Types.Data20.from_term!(value)}
+          key in [:to, :from] ->
+            {Atom.to_string(key), EthereumApi.Types.Data20.from_term!(value)}
 
-          opt == :data ->
-            {Atom.to_string(opt), EthereumApi.Types.Data.from_term!(value)}
+          key == :data ->
+            {Atom.to_string(key), EthereumApi.Types.Data.from_term!(value)}
 
           true ->
-            raise ArgumentError, "Invalid option: #{inspect(opt)}"
+            raise ArgumentError, "Invalid option: #{inspect(key)}"
         end
 
       Map.get_and_update(acc, key, fn
         nil -> {nil, value}
-        _ -> raise ArgumentError, "Duplicate option: #{inspect(opt)}"
+        _ -> raise ArgumentError, "Duplicate option: #{inspect(key)}"
       end)
       |> elem(1)
-    end)
+    end
+
+    # Check validity of transaction elems
+    transaction = Enum.reduce(transaction, %{}, check_elem_and_add_it_to_acc)
+
+    # Check validity of opts elems and add them to transaction
+    Enum.reduce(opts, transaction, check_elem_and_add_it_to_acc)
   end
 
-  def create_filter_options_object!(opts, allow_block_hash?) do
+  defp create_filter_options_object!(opts, allow_block_hash?) do
     opts
     |> validate_filter_options!(allow_block_hash?)
     |> transform_filter_options!()
