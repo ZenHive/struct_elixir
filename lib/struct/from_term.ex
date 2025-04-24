@@ -1,6 +1,69 @@
 defmodule Struct.FromTerm do
+  @moduledoc """
+  Use as a `Struct` derive to implement the following callbacks automatically
+  """
+
+  @typep t :: any
+
+  @from_term_doc """
+  Parses a term into the struct, validating and converting each field.
+  Returns `{:ok, struct}` on success or `{:error, reason}` on failure.
+
+  Will always return an error if the given term is not a map
+  """
+  @doc @from_term_doc
+  @callback from_term(term()) :: Result.t(t(), String.t())
+
+  @from_term_doc! """
+  Parses a term into the struct, validating and converting each field.
+  Returns the struct on success or raises an error on failure.
+
+  Will always raise an error if the given term is not a map
+  """
+  @doc @from_term_doc!
+  @callback from_term!(term()) :: t()
+
+  @from_term_list_doc """
+  Parses a list of terms into a list of structs using from_term/1.
+  Returns `{:ok, [struct, ...]}` on success or `{:error, reason}` on failure.
+
+  Stops at the first error
+  """
+  @doc @from_term_list_doc
+  @callback from_term_list(term()) :: Result.t([t()], String.t())
+
+  @from_term_list_doc! """
+  Parses a list of terms into a list of structs using from_term/1.
+  Returns `[struct, ...]` on success or raises an error on failure.
+
+  Stops at the first error
+  """
+  @doc @from_term_list_doc!
+  @callback from_term_list!(term()) :: [t()]
+
+  @from_term_optional_doc """
+  Parses a term into an `Option.t(struct)` using from_term/1.
+  Returns `{:ok, struct | nil}` or `{:error, reason}`.
+  """
+  @doc @from_term_optional_doc
+  @callback from_term_optional(term()) :: Result.t(Option.t(t()), String.t())
+
+  @from_term_optional_doc! """
+  Parses a term into an `Option.t(struct)` using from_term!/1.
+  Returns `struct | nil` or raises an error on failure.
+  """
+  @doc @from_term_optional_doc!
+  @callback from_term_optional!(term()) :: Option.t(t())
+
+  @doc false
   def derive(fields, caller_module) do
+    self_module = __MODULE__
+
     quote do
+      @behaviour unquote(self_module)
+
+      @doc unquote(@from_term_doc)
+      @impl unquote(self_module)
       @spec from_term(term()) :: Result.t(t(), String.t())
       def from_term(data) when is_map(data) do
         with unquote_splicing(
@@ -34,11 +97,16 @@ defmodule Struct.FromTerm do
         {:error, "Expected a map for #{unquote(caller_module)} data, got #{inspect(value)}"}
       end
 
+      @doc unquote(@from_term_doc!)
+      @impl unquote(self_module)
+      @spec from_term!(term()) :: t()
       def from_term!(value) do
         from_term(value)
         |> Result.unwrap!()
       end
 
+      @doc unquote(@from_term_list_doc)
+      @impl unquote(self_module)
       @spec from_term_list([term()]) :: Result.t([t()], String.t())
       def from_term_list(list) when is_list(list) do
         Result.try_reduce(list, [], fn elem, acc ->
@@ -54,15 +122,21 @@ defmodule Struct.FromTerm do
          "Failed to parse list of #{unquote(caller_module)}, expected a list got #{inspect(value)}"}
       end
 
+      @doc unquote(@from_term_list_doc!)
+      @impl unquote(self_module)
       @spec from_term_list!([term()]) :: [t()]
       def from_term_list!(list) do
         from_term_list(list)
         |> Result.unwrap!()
       end
 
+      @doc unquote(@from_term_optional_doc)
+      @impl unquote(self_module)
       @spec from_term_optional(term()) :: Result.t(Option.t(t()), String.t())
       def from_term_optional(value), do: Option.map(value, &from_term/1)
 
+      @doc unquote(@from_term_optional_doc!)
+      @impl unquote(self_module)
       @spec from_term_optional!(term()) :: Option.t(t())
       def from_term_optional!(value), do: Option.map(value, &from_term!/1)
     end
