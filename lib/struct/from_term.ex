@@ -211,7 +211,7 @@ defmodule Struct.FromTerm do
           |> Result.map(&Enum.reverse/1)
 
         value ->
-          quote do: {:error, "Expected a list, got #{inspect(value)}"}
+          {:error, "Expected a list, got #{inspect(value)}"}
       end
     end
   end
