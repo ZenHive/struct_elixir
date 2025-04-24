@@ -1,4 +1,4 @@
-defmodule StructTest.FromTermTest do
+defmodule Struct.FromTermTest do
   use ExUnit.Case, async: true
   doctest Struct.FromTerm
 
@@ -115,7 +115,7 @@ defmodule StructTest.FromTermTest do
 
       expected = {
         :error,
-        "Failed to parse field basic_type of Elixir.StructTest.FromTermTest.Foo: Expected string, got 123"
+        "Failed to parse field basic_type of Elixir.Struct.FromTermTest.Foo: Expected string, got 123"
       }
 
       assert expected == Foo.from_term(map)
@@ -135,7 +135,7 @@ defmodule StructTest.FromTermTest do
 
       expected = {
         :error,
-        "Failed to parse field optional_type of Elixir.StructTest.FromTermTest.Foo: Expected integer, got \"not a number\""
+        "Failed to parse field optional_type of Elixir.Struct.FromTermTest.Foo: Expected integer, got \"not a number\""
       }
 
       assert expected == Foo.from_term(map)
@@ -155,7 +155,7 @@ defmodule StructTest.FromTermTest do
 
       expected = {
         :error,
-        "Failed to parse field list_type of Elixir.StructTest.FromTermTest.Foo: Expected a list, got 42"
+        "Failed to parse field list_type of Elixir.Struct.FromTermTest.Foo: Expected a list, got 42"
       }
 
       assert expected == Foo.from_term(map)
@@ -175,7 +175,7 @@ defmodule StructTest.FromTermTest do
 
       expected = {
         :error,
-        "Failed to parse field nested_type of Elixir.StructTest.FromTermTest.Foo: Expected a list, got \"not a list\""
+        "Failed to parse field nested_type of Elixir.Struct.FromTermTest.Foo: Expected a list, got \"not a list\""
       }
 
       assert expected == Foo.from_term(map)
@@ -195,7 +195,7 @@ defmodule StructTest.FromTermTest do
 
       expected = {
         :error,
-        "Failed to parse field bar of Elixir.StructTest.FromTermTest.Foo: Expected a map for Elixir.StructTest.FromTermTest.Bar data, got nil"
+        "Failed to parse field bar of Elixir.Struct.FromTermTest.Foo: Expected a map for Elixir.Struct.FromTermTest.Bar data, got nil"
       }
 
       assert expected == Foo.from_term(map)
@@ -206,20 +206,20 @@ defmodule StructTest.FromTermTest do
 
       expected = {
         :error,
-        "Expected a map for Elixir.StructTest.FromTermTest.Foo data, got \"not a map\""
+        "Expected a map for Elixir.Struct.FromTermTest.Foo data, got \"not a map\""
       }
 
       assert expected == Foo.from_term(map)
 
       map = 123
-      expected = {:error, "Expected a map for Elixir.StructTest.FromTermTest.Foo data, got 123"}
+      expected = {:error, "Expected a map for Elixir.Struct.FromTermTest.Foo data, got 123"}
       assert expected == Foo.from_term(map)
 
       map = [1, 2, 3]
 
       expected = {
         :error,
-        "Expected a map for Elixir.StructTest.FromTermTest.Foo data, got [1, 2, 3]"
+        "Expected a map for Elixir.Struct.FromTermTest.Foo data, got [1, 2, 3]"
       }
 
       assert expected == Foo.from_term(map)
