@@ -8,7 +8,7 @@ defmodule Struct.FromTerm do
                  quote do
                    {:ok, unquote(get_field_var(field, __MODULE__))} <-
                      unquote(Struct.FromTerm.get_value_ast(field, opts))
-                     |> Struct.FromTerm.parse_field(unquote(opts))
+                     |> unquote(Struct.FromTerm.parse_field_ast(opts))
                      |> Result.map_err(
                        &"Failed to parse field #{unquote(field)} of #{unquote(caller_module)}: #{&1}"
                      )
@@ -108,34 +108,41 @@ defmodule Struct.FromTerm do
   end
 
   @doc false
-  def parse_field(value, opts) when is_list(opts) do
+  def parse_field_ast(opts) when is_list(opts) do
     type = opts |> Keyword.get(:type)
-    do_parse_field(value, type)
+    do_parse_field(type)
   end
 
-  def parse_field(value, type), do: do_parse_field(value, type)
+  def parse_field_ast(type), do: do_parse_field(type)
 
-  defp do_parse_field(value, {:option, type}) do
-    case value do
-      nil -> {:ok, nil}
-      value -> do_parse_field(value, type)
+  defp do_parse_field({:option, type}) do
+    quote do
+      case do
+        nil -> {:ok, nil}
+        value -> value |> unquote(do_parse_field(type))
+      end
     end
   end
 
-  defp do_parse_field(value, {:list, type}) when is_list(value) do
-    Result.try_reduce(value, [], fn elem, acc ->
-      do_parse_field(elem, type)
-      |> Result.map(&[&1 | acc])
-      |> Result.map_err(&"Failed to parse list elem #{inspect(elem)}: #{&1}")
-    end)
-    |> Result.map(&Enum.reverse/1)
+  defp do_parse_field({:list, type}) do
+    quote do
+      case do
+        value when is_list(value) ->
+          Result.try_reduce(value, [], fn value, acc ->
+            value
+            |> unquote(do_parse_field(type))
+            |> Result.map(&[&1 | acc])
+            |> Result.map_err(&"Failed to parse list elem #{inspect(value)}: #{&1}")
+          end)
+          |> Result.map(&Enum.reverse/1)
+
+        value ->
+          quote do: {:error, "Expected a list, got #{inspect(value)}"}
+      end
+    end
   end
 
-  defp do_parse_field(value, {:list, _type}) do
-    {:error, "Expected a list, got #{inspect(value)}"}
-  end
-
-  defp do_parse_field(value, type) do
-    type.from_term(value)
+  defp do_parse_field(type) do
+    quote do: unquote(type).from_term()
   end
 end

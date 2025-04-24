@@ -34,8 +34,13 @@ defmodule Struct do
 
       unquote_splicing(
         for derive_module <- derives do
-          Macro.expand(derive_module, __ENV__)
-          |> apply(:derive, [fields, module])
+          quote do
+            (unquote_splicing(
+               Macro.expand(derive_module, __ENV__)
+               |> apply(:derive, [fields, module])
+               |> List.wrap()
+             ))
+          end
         end
         |> Enum.filter(&(&1 != nil && &1 != :nop))
       )
