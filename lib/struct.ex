@@ -5,7 +5,7 @@ defmodule Struct do
   defmacro __using__({:{}, _, args}) do
     {:debug, derives, fields} = args |> List.to_tuple()
 
-    ast = create_struct(derives, fields, __CALLER__.module, true)
+    ast = create_struct(derives, fields, __CALLER__.module)
 
     readable_code = ast |> Macro.to_string() |> Code.format_string!() |> IO.iodata_to_binary()
     IO.puts("use Struct Generated code for module #{__CALLER__.module}\n#{readable_code}")
@@ -21,7 +21,7 @@ defmodule Struct do
     create_struct([], fields, __CALLER__.module)
   end
 
-  defp create_struct(derives, fields, module, debug \\ false) do
+  defp create_struct(derives, fields, module) do
     keys = fields |> Enum.map(fn {key, _opts} -> key end)
 
     quote do
@@ -33,11 +33,11 @@ defmodule Struct do
             }
 
       unquote_splicing(
-        for derive <- derives do
-          quote do
-            use unquote(derive), {unquote(fields), unquote(module), unquote(debug)}
-          end
+        for derive_module <- derives do
+          Macro.expand(derive_module, __ENV__)
+          |> apply(:derive, [fields, module])
         end
+        |> Enum.filter(&(&1 != nil && &1 != :nop))
       )
     end
   end
