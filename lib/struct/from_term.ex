@@ -1,6 +1,41 @@
 defmodule Struct.FromTerm do
   @moduledoc """
   Use as a `Struct` derive to implement the following callbacks automatically
+
+  # Example
+  ```elixir
+  defmodule MyStruct do
+    use Struct, {
+      [Struct.FromTerm],
+
+      # Simple field
+      field1: :string,
+
+      # Field with custom keys
+      field2: [
+        type: SomeOtherStruct, # `SomeOtherStruct` must implement `Struct.FromTerm`
+        "Struct.FromTerm": [keys: "custom_key"] # Specify a custom key (can also be a list of keys)
+      ],
+      # The keys we look for are always: [:field_name, "field_name"] ++ custom_keys
+      # ie: example above has the following valid keys for field2: [:field2, "field2", "custom_key"]
+
+      # Field with default value
+      field3: [
+        type: :integer,
+        "Struct.FromTerm": [default: 42] # Specify a default value when the keys are not found in the map
+      ]
+
+      # It is possible to use multiple options
+      field4: [
+        type: :integer,
+        "Struct.FromTerm": [
+          keys: ["field_4", "Field4", "Field_4", 4],
+          default: 42
+        ]
+      ]
+    }
+  end
+  ```
   """
 
   @typep t :: any
@@ -55,8 +90,13 @@ defmodule Struct.FromTerm do
   @doc @from_term_optional_doc!
   @callback from_term_optional!(term()) :: Option.t(t())
 
+  @behaviour Struct.DeriveModuleBehaviour
+
   @doc false
+  @impl Struct.DeriveModuleBehaviour
   def derive(fields, caller_module) do
+    IO.inspect(fields, label: "fields")
+    IO.inspect(caller_module, label: "caller_module")
     self_module = __MODULE__
 
     quote do
@@ -189,11 +229,56 @@ defmodule Struct.FromTerm do
 
   def parse_field_ast(type), do: do_parse_field(type)
 
-  defp do_parse_field({:option, type}) do
+  defp do_parse_field(:integer) do
     quote do
       case do
-        nil -> {:ok, nil}
-        value -> value |> unquote(do_parse_field(type))
+        value when is_integer(value) ->
+          {:ok, value}
+
+        value ->
+          {:error, "Expected an integer, got #{inspect(value)}"}
+      end
+    end
+  end
+
+  defp do_parse_field(:string) do
+    error = quote do: {:error, "Expected a string, got #{inspect(value)}"}
+
+    quote do
+      case do
+        value when is_binary(value) ->
+          if String.valid?(value) do
+            {:ok, value}
+          else
+            unquote(error)
+          end
+
+        value ->
+          unquote(error)
+      end
+    end
+  end
+
+  defp do_parse_field(:boolean) do
+    quote do
+      case do
+        value when is_boolean(value) ->
+          {:ok, value}
+
+        value ->
+          {:error, "Expected a boolean, got #{inspect(value)}"}
+      end
+    end
+  end
+
+  defp do_parse_field(:float) do
+    quote do
+      case do
+        value when is_float(value) ->
+          {:ok, value}
+
+        value ->
+          {:error, "Expected a float, got #{inspect(value)}"}
       end
     end
   end
@@ -216,7 +301,16 @@ defmodule Struct.FromTerm do
     end
   end
 
-  defp do_parse_field(type) do
-    quote do: unquote(type).from_term()
+  defp do_parse_field({:option, type}) do
+    quote do
+      case do
+        nil -> {:ok, nil}
+        value -> value |> unquote(do_parse_field(type))
+      end
+    end
+  end
+
+  defp do_parse_field(module) do
+    quote do: unquote(module).from_term()
   end
 end

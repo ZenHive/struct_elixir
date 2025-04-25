@@ -1,7 +1,19 @@
 defmodule Struct do
-  @moduledoc """
-  A module for creating structs with type annotations.
-  """
+  @moduledoc "README.md"
+             |> File.read!()
+             |> String.split("<!-- Struct Module Doc Separator !-->")
+             |> Enum.fetch!(1)
+
+  @type variable_name :: atom()
+  @type field_type ::
+          :integer
+          | :string
+          | :boolean
+          | :float
+          | {:list, field_type()}
+          | {:option, field_type()}
+          | module()
+
   defmacro __using__({:{}, _, args}) do
     {:debug, derives, fields} = args |> List.to_tuple()
 
@@ -50,22 +62,45 @@ defmodule Struct do
   defp get_type(opts) when is_list(opts), do: opts |> Keyword.get(:type) |> do_get_type()
   defp get_type(type), do: do_get_type(type)
 
-  defp do_get_type(type) do
-    case type do
-      {:option, type} ->
-        quote do
-          Option.t(unquote(get_type(type)))
-        end
+  defp do_get_type(:integer) do
+    quote do
+      integer()
+    end
+  end
 
-      {:list, type} ->
-        quote do
-          list(unquote(get_type(type)))
-        end
+  defp do_get_type(:string) do
+    quote do
+      String.t()
+    end
+  end
 
-      type ->
-        quote do
-          unquote(type).t()
-        end
+  defp do_get_type(:boolean) do
+    quote do
+      boolean()
+    end
+  end
+
+  defp do_get_type(:float) do
+    quote do
+      float()
+    end
+  end
+
+  defp do_get_type({:list, type}) do
+    quote do
+      list(unquote(get_type(type)))
+    end
+  end
+
+  defp do_get_type({:option, type}) do
+    quote do
+      Option.t(unquote(get_type(type)))
+    end
+  end
+
+  defp do_get_type(module) do
+    quote do
+      unquote(module).t()
     end
   end
 end

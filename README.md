@@ -1,21 +1,100 @@
-# EthereumApi
+# Struct
 
-Library to interact with ethereum nodes through json rpc
+<!-- Struct Module Doc Separator !-->
+Library to easily create structs and auto implement behaviors for them.
 
-## Installation
+# Examples:
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `ethereum_api` to your list of dependencies in `mix.exs`:
+```elixir
+# Simple case
+defmodule User do
+  use Struct,
+    id: :integer,
+    name: :string
+end
+# Will generate the following code ->
+defmodule User do
+  @enforce_keys [:id, :name]
+  defstruct [:id, :name]
+
+  @type t :: %__MODULE__{
+    id: integer(),
+    name: String.t()
+  }
+end
+```
+
+```elixir
+# Using the derive feature to implement behaviour automatically
+defmodule Foo do
+  use Struct, {
+    [Struct.FromTerm], # Will implement the behaviour `Struct.FromTerm` automatically
+    field: :integer,
+  }
+
+  # from_term/1 is generated automatically
+end
+```
+
+```elixir
+# You can put other modules as types
+defmodule Group do
+  use Struct,
+    id: :integer,
+    name: :string,
+    owner: User # Make sure not to add `.t()`
+end
+```
+
+```elixir
+# List and optional fields must be given like this to support derives
+defmodule Group do
+  use Struct,
+    id: :integer,
+    name: {:option, :string},
+    owner: User, # Make sure not to add `.t()`
+    users: {:list, User} # Make sure not to add `.t()`
+end
+```
+
+```elixir
+# You can print the generated code by adding the :debug flag
+defmodule DebugExamples do
+  use Struct, {
+    :debug, # Put `:debug` here
+    [], # With `:debug`, the derive list must be present even if it is empty
+    id: :integer,
+    name: {:option, :string},
+  }
+end
+```
+
+# Supported types:
+
+- `:integer`
+- `:string`
+- `:boolean`
+- `:float`
+- `{:list, AnySupportedType}`
+- `{:option, AnySupportedType}`
+- `Module`
+
+# Included Behaviours:
+
+- `Struct.FromTerm`
+
+# How to implement your own behaviours:
+
+See `Struct.DeriveModuleBehaviour`
+
+# Installation
 
 ```elixir
 def deps do
   [
-    {:ethereum_api, git: "https://github.com/ZenHive/ethereum-api-elixir.git", tag: "v0.1.0-b3"},
+    {:struct, git: "TODO!", tag: "v0.1.0"},
   ]
 end
 ```
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/ethereum_api>.
-
+<!-- Struct Module Doc Separator !-->

@@ -5,7 +5,7 @@ defmodule Struct.FromTermTest do
   defmodule Bar do
     use Struct, {
       [Struct.FromTerm],
-      [basic_type: Struct.Types.Str]
+      basic_type: :string
     }
   end
 
@@ -13,23 +13,43 @@ defmodule Struct.FromTermTest do
     use Struct, {
       :debug,
       [Struct.FromTerm],
-      [
-        basic_type: Struct.Types.Str,
-        basic_type_custom_key: [
-          type: Struct.Types.Str,
-          "Struct.FromTerm": [keys: "basicTypeCustomKey"]
-        ],
-        optional_type: {:option, Struct.Types.Int},
-        list_type: {:list, Struct.Types.Str},
-        nested_type: {:option, {:list, Struct.Types.Str}},
-        nested_type_custom_key: [
-          type: {:option, {:list, Struct.Types.Str}},
-          "Struct.FromTerm": [keys: "CompletelyCustomKey"]
-        ],
-        bar: Bar
-      ]
+      basic_type: :string,
+      basic_type_custom_key: [
+        type: :string,
+        "Struct.FromTerm": [keys: "basicTypeCustomKey"]
+      ],
+      optional_type: {:option, :integer},
+      list_type: {:list, :string},
+      nested_type: {:option, {:list, :string}},
+      nested_type_custom_key: [
+        type: {:option, {:list, :string}},
+        "Struct.FromTerm": [keys: "CompletelyCustomKey"]
+      ],
+      bar: Bar
     }
   end
+
+  defmodule Float do
+    use Struct, {
+      [Struct.FromTerm],
+      float: :float
+    }
+  end
+
+  defmodule Bool do
+    use Struct, {
+      [Struct.FromTerm],
+      bool: :boolean
+    }
+  end
+
+  defmodule ListOfList do
+    use Struct, {
+      [Struct.FromTerm],
+      list_of_list: {:list, {:list, :integer}}
+    }
+  end
+
 
   describe "from_term/1" do
     test "successfully creates struct with all fields" do
@@ -115,7 +135,7 @@ defmodule Struct.FromTermTest do
 
       expected = {
         :error,
-        "Failed to parse field basic_type of Elixir.Struct.FromTermTest.Foo: Expected string, got 123"
+        "Failed to parse field basic_type of Elixir.Struct.FromTermTest.Foo: Expected a string, got 123"
       }
 
       assert expected == Foo.from_term(map)
@@ -135,7 +155,7 @@ defmodule Struct.FromTermTest do
 
       expected = {
         :error,
-        "Failed to parse field optional_type of Elixir.Struct.FromTermTest.Foo: Expected integer, got \"not a number\""
+        "Failed to parse field optional_type of Elixir.Struct.FromTermTest.Foo: Expected an integer, got \"not a number\""
       }
 
       assert expected == Foo.from_term(map)
@@ -272,5 +292,73 @@ defmodule Struct.FromTermTest do
 
       assert {:ok, expected} == Foo.from_term(map)
     end
+  end
+
+  test "Valid float" do
+    map = %{
+      float: 0.5
+    }
+
+    expected = %Float{float: 0.5}
+
+    assert {:ok, expected} == Float.from_term(map)
+  end
+
+  test "Invalid float" do
+    map = %{
+      float: "str"
+    }
+
+    expected =
+      {:error,
+       "Failed to parse field float of Elixir.Struct.FromTermTest.Float: Expected a float, got \"str\""}
+
+    assert expected == Float.from_term(map)
+  end
+
+  test "Valid bool" do
+    map = %{
+      bool: true
+    }
+
+    expected = %Bool{bool: true}
+
+    assert {:ok, expected} == Bool.from_term(map)
+  end
+
+  test "Invalid bool" do
+    map = %{
+      bool: "str"
+    }
+
+    expected =
+      {:error,
+       "Failed to parse field bool of Elixir.Struct.FromTermTest.Bool: Expected a boolean, got \"str\""}
+
+
+    assert expected == Bool.from_term(map)
+  end
+
+  test "Valid list of list" do
+    map = %{
+      list_of_list: [[42, 43], [45, 46, 48]]
+    }
+
+    expected = %ListOfList{list_of_list: [[42, 43], [45, 46, 48]]}
+
+    assert {:ok, expected} == ListOfList.from_term(map)
+  end
+
+  test "Invalid list of list" do
+    map = %{
+      list_of_list: "str"
+    }
+
+    expected =
+      {:error,
+       "Failed to parse field list_of_list of Elixir.Struct.FromTermTest.ListOfList: Expected a list, got \"str\""}
+
+
+    assert expected == ListOfList.from_term(map)
   end
 end

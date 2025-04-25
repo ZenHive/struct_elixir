@@ -4,19 +4,17 @@ defmodule StructTest do
 
   defmodule Simple do
     use Struct,
-      basic_type: Struct.Types.Str,
-      optional_type: {:option, Struct.Types.Int},
-      list_type: {:list, Struct.Types.Str}
+      basic_type: :string,
+      optional_type: {:option, :integer},
+      list_type: {:list, :string}
   end
 
   defmodule EmptyDerives do
     use Struct, {
       [],
-      [
-        basic_type: [
-          type: Struct.Types.Str,
-          "Struct.FromTerm": "basicType"
-        ]
+      basic_type: [
+        type: :string,
+        "Struct.FromTerm": [keys: "basicType"]
       ]
     }
   end
@@ -25,11 +23,9 @@ defmodule StructTest do
     use Struct, {
       :debug,
       [],
-      [
-        basic_type: [
-          type: Struct.Types.Str,
-          "Struct.FromTerm": "basicType"
-        ]
+      basic_type: [
+        type: :string,
+        "Struct.FromTerm": [keys: "basicType"]
       ]
     }
   end
@@ -37,20 +33,16 @@ defmodule StructTest do
   defmodule WithDerive do
     use Struct, {
       [Struct.FromTerm],
-      [
-        basic_type: Struct.Types.Str
-      ]
+      basic_type: :string
     }
   end
 
   defmodule WithDeriveAndCustomOption do
     use Struct, {
       [Struct.FromTerm],
-      [
-        basic_type: [
-          type: Struct.Types.Str,
-          "Struct.FromTerm": "basicType"
-        ]
+      basic_type: [
+        type: :string,
+        "Struct.FromTerm": [keys: "basicType"]
       ]
     }
   end
@@ -58,13 +50,11 @@ defmodule StructTest do
   defmodule Nested do
     use Struct, {
       [Struct.FromTerm],
-      [
-        basic_type: Struct.Types.Str,
-        nested_type: {:option, {:list, Struct.Types.Str}},
-        nested_type_custom_key: [
-          type: {:option, {:list, Simple}},
-          "Struct.FromTerm": "nestedTypeCustomKey"
-        ]
+      basic_type: :string,
+      nested_type: {:option, {:list, :string}},
+      nested_type_custom_key: [
+        type: {:option, {:list, WithDerive}},
+        "Struct.FromTerm": [keys: "nestedTypeCustomKey"]
       ]
     }
   end
