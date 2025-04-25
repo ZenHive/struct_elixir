@@ -95,8 +95,6 @@ defmodule Struct.FromTerm do
   @doc false
   @impl Struct.DeriveModuleBehaviour
   def derive(fields, caller_module) do
-    IO.inspect(fields, label: "fields")
-    IO.inspect(caller_module, label: "caller_module")
     self_module = __MODULE__
 
     quote do
