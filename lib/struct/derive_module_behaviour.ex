@@ -21,7 +21,7 @@ defmodule Struct.DeriveModuleBehaviour do
     ]
     ```
   - module: The module that is currently defining a struct
-  
+
   Must return either an AST or a list of ASTs
   (The list may also contain `nil` and `:nop`, those value will be ignored)
   """

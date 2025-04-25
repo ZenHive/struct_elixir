@@ -50,7 +50,6 @@ defmodule Struct.FromTermTest do
     }
   end
 
-
   describe "from_term/1" do
     test "successfully creates struct with all fields" do
       map = %{
@@ -335,7 +334,6 @@ defmodule Struct.FromTermTest do
       {:error,
        "Failed to parse field bool of Elixir.Struct.FromTermTest.Bool: Expected a boolean, got \"str\""}
 
-
     assert expected == Bool.from_term(map)
   end
 
@@ -357,7 +355,6 @@ defmodule Struct.FromTermTest do
     expected =
       {:error,
        "Failed to parse field list_of_list of Elixir.Struct.FromTermTest.ListOfList: Expected a list, got \"str\""}
-
 
     assert expected == ListOfList.from_term(map)
   end
