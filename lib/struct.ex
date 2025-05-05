@@ -10,6 +10,7 @@ defmodule Struct do
           | :string
           | :boolean
           | :float
+          | :any
           | {:list, field_type()}
           | {:option, field_type()}
           | module()
@@ -63,44 +64,34 @@ defmodule Struct do
   defp get_type(type), do: do_get_type(type)
 
   defp do_get_type(:integer) do
-    quote do
-      integer()
-    end
+    quote do: integer()
   end
 
   defp do_get_type(:string) do
-    quote do
-      String.t()
-    end
+    quote do: String.t()
   end
 
   defp do_get_type(:boolean) do
-    quote do
-      boolean()
-    end
+    quote do: boolean()
   end
 
   defp do_get_type(:float) do
-    quote do
-      float()
-    end
+    quote do: float()
+  end
+
+  defp do_get_type(:any) do
+    quote do: any()
   end
 
   defp do_get_type({:list, type}) do
-    quote do
-      list(unquote(get_type(type)))
-    end
+    quote do: list(unquote(get_type(type)))
   end
 
   defp do_get_type({:option, type}) do
-    quote do
-      Option.t(unquote(get_type(type)))
-    end
+    quote do: Option.t(unquote(get_type(type)))
   end
 
   defp do_get_type(module) do
-    quote do
-      unquote(module).t()
-    end
+    quote do: unquote(module).t()
   end
 end

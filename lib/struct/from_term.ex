@@ -281,6 +281,12 @@ defmodule Struct.FromTerm do
     end
   end
 
+  defp do_parse_field(:any) do
+    quote do
+      then(&{:ok, &1})
+    end
+  end
+
   defp do_parse_field({:list, type}) do
     quote do
       case do

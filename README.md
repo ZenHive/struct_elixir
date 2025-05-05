@@ -75,6 +75,7 @@ end
 - `:string`
 - `:boolean`
 - `:float`
+- `:any`
 - `{:list, AnySupportedType}`
 - `{:option, AnySupportedType}`
 - `Module`

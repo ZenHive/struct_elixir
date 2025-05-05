@@ -43,6 +43,13 @@ defmodule Struct.FromTermTest do
     }
   end
 
+  defmodule Any do
+    use Struct, {
+      [Struct.FromTerm],
+      any: :any
+    }
+  end
+
   defmodule ListOfList do
     use Struct, {
       [Struct.FromTerm],
@@ -335,6 +342,17 @@ defmodule Struct.FromTermTest do
        "Failed to parse field bool of Elixir.Struct.FromTermTest.Bool: Expected a boolean, got \"str\""}
 
     assert expected == Bool.from_term(map)
+  end
+
+  test "Any type" do
+    map = %{any: 42}
+    assert {:ok, struct!(Any, map)} == Any.from_term(map)
+
+    map = %{any: "Hey"}
+    assert {:ok, struct!(Any, map)} == Any.from_term(map)
+
+    map = %{any: [42, "Hey"]}
+    assert {:ok, struct!(Any, map)} == Any.from_term(map)
   end
 
   test "Valid list of list" do
