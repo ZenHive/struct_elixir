@@ -47,7 +47,7 @@ end
 ```
 
 ```elixir
-# List and optional fields must be given like this to support derives
+# List and optional fields must be given like this
 defmodule Group do
   use Struct,
     id: :integer,
