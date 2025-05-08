@@ -311,7 +311,10 @@ defmodule Struct.FromTerm do
             |> Result.map(&[&1 | acc])
             |> Result.map_err(&"Failed to parse list elem #{inspect(value)}: #{&1}")
           end)
-          |> Result.map(&Enum.reverse/1)
+          |> case do
+            {:error, reason} -> {:error, reason}
+            {:ok, list} -> {:ok, Enum.reverse(list)}
+          end
 
         value ->
           {:error, "Expected a list, got #{inspect(value)}"}
