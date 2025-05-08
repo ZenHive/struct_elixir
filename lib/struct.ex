@@ -88,7 +88,7 @@ defmodule Struct do
   end
 
   defp do_get_type({:option, type}) do
-    quote do: Option.t(unquote(get_type(type)))
+    quote do: unquote(get_type(type)) | nil
   end
 
   defp do_get_type(module) do

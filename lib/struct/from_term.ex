@@ -77,18 +77,18 @@ defmodule Struct.FromTerm do
   @callback from_term_list!(term()) :: [t()]
 
   @from_term_optional_doc """
-  Parses a term into an `Option.t(struct)` using from_term/1.
+  Parses a term into a `struct | nil` using from_term/1.
   Returns `{:ok, struct | nil}` or `{:error, reason}`.
   """
   @doc @from_term_optional_doc
-  @callback from_term_optional(term()) :: {:ok, Option.t(t())} | {:error, String.t()}
+  @callback from_term_optional(term()) :: {:ok, t() | nil} | {:error, String.t()}
 
   @from_term_optional_doc! """
-  Parses a term into an `Option.t(struct)` using from_term!/1.
+  Parses a term into a `struct | nil` using from_term!/1.
   Returns `struct | nil` or raises an error on failure.
   """
   @doc @from_term_optional_doc!
-  @callback from_term_optional!(term()) :: Option.t(t())
+  @callback from_term_optional!(term()) :: t() | nil
 
   @behaviour Struct.DeriveModuleBehaviour
 
@@ -110,9 +110,14 @@ defmodule Struct.FromTerm do
                    {:ok, unquote(get_field_var(field, __MODULE__))} <-
                      unquote(Struct.FromTerm.get_value_ast(field, opts))
                      |> unquote(Struct.FromTerm.parse_field_ast(opts))
-                     |> Result.map_err(
-                       &"Failed to parse field #{unquote(field)} of #{unquote(caller_module)}: #{&1}"
-                     )
+                     |> case do
+                       {:error, err} ->
+                         {:error,
+                          "Failed to parse field #{unquote(field)} of #{unquote(caller_module)}: #{err}"}
+
+                       ok ->
+                         ok
+                     end
                  end
                end
              ) do
@@ -139,8 +144,10 @@ defmodule Struct.FromTerm do
       @impl unquote(self_module)
       @spec from_term!(term()) :: t()
       def from_term!(value) do
-        from_term(value)
-        |> Result.unwrap!()
+        case from_term(value) do
+          {:error, reason} -> raise "#{unquote(caller_module)}.from_term failed: #{reason}"
+          ok -> ok
+        end
       end
 
       @doc unquote(@from_term_list_doc)
@@ -151,8 +158,13 @@ defmodule Struct.FromTerm do
           from_term(elem)
           |> Result.map(&[&1 | acc])
         end)
-        |> Result.map(&Enum.reverse/1)
-        |> Result.map_err(&"Failed to parse list of #{unquote(caller_module)}: #{&1}")
+        |> case do
+          {:error, reason} ->
+            {:error, "Failed to parse list of #{unquote(caller_module)}: #{reason}"}
+
+          {:ok, list} ->
+            {:ok, list |> Enum.reverse()}
+        end
       end
 
       def from_term_list(value) do
@@ -164,18 +176,20 @@ defmodule Struct.FromTerm do
       @impl unquote(self_module)
       @spec from_term_list!([term()]) :: [t()]
       def from_term_list!(list) do
-        from_term_list(list)
-        |> Result.unwrap!()
+        case from_term_list(list) do
+          {:error, reason} -> raise "#{unquote(caller_module)}.from_term_list! failed: #{reason}"
+          ok -> ok
+        end
       end
 
       @doc unquote(@from_term_optional_doc)
       @impl unquote(self_module)
-      @spec from_term_optional(term()) :: {:ok, Option.t(t())} | {:error, String.t()}
+      @spec from_term_optional(term()) :: {:ok, t() | nil} | {:error, String.t()}
       def from_term_optional(value), do: Option.map(value, &from_term/1)
 
       @doc unquote(@from_term_optional_doc!)
       @impl unquote(self_module)
-      @spec from_term_optional!(term()) :: Option.t(t())
+      @spec from_term_optional!(term()) :: t() | nil
       def from_term_optional!(value), do: Option.map(value, &from_term!/1)
     end
   end
