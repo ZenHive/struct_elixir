@@ -47,7 +47,7 @@ defmodule Struct.FromTerm do
   Will always return an error if the given term is not a map
   """
   @doc @from_term_doc
-  @callback from_term(term()) :: Result.t(t(), String.t())
+  @callback from_term(term()) :: {:ok, t()} | {:error, String.t()}
 
   @from_term_doc! """
   Parses a term into the struct, validating and converting each field.
@@ -65,7 +65,7 @@ defmodule Struct.FromTerm do
   Stops at the first error
   """
   @doc @from_term_list_doc
-  @callback from_term_list(term()) :: Result.t([t()], String.t())
+  @callback from_term_list(term()) :: {:ok, [t()]} | {:error, String.t()}
 
   @from_term_list_doc! """
   Parses a list of terms into a list of structs using from_term/1.
@@ -81,7 +81,7 @@ defmodule Struct.FromTerm do
   Returns `{:ok, struct | nil}` or `{:error, reason}`.
   """
   @doc @from_term_optional_doc
-  @callback from_term_optional(term()) :: Result.t(Option.t(t()), String.t())
+  @callback from_term_optional(term()) :: {:ok, Option.t(t())} | {:error, String.t()}
 
   @from_term_optional_doc! """
   Parses a term into an `Option.t(struct)` using from_term!/1.
@@ -102,7 +102,7 @@ defmodule Struct.FromTerm do
 
       @doc unquote(@from_term_doc)
       @impl unquote(self_module)
-      @spec from_term(term()) :: Result.t(t(), String.t())
+      @spec from_term(term()) :: {:ok, t()} | {:error, String.t()}
       def from_term(data) when is_map(data) do
         with unquote_splicing(
                for {field, opts} <- fields do
@@ -145,7 +145,7 @@ defmodule Struct.FromTerm do
 
       @doc unquote(@from_term_list_doc)
       @impl unquote(self_module)
-      @spec from_term_list([term()]) :: Result.t([t()], String.t())
+      @spec from_term_list([term()]) :: {:ok, [t()]} | {:error, String.t()}
       def from_term_list(list) when is_list(list) do
         Result.try_reduce(list, [], fn elem, acc ->
           from_term(elem)
@@ -170,7 +170,7 @@ defmodule Struct.FromTerm do
 
       @doc unquote(@from_term_optional_doc)
       @impl unquote(self_module)
-      @spec from_term_optional(term()) :: Result.t(Option.t(t()), String.t())
+      @spec from_term_optional(term()) :: {:ok, Option.t(t())} | {:error, String.t()}
       def from_term_optional(value), do: Option.map(value, &from_term/1)
 
       @doc unquote(@from_term_optional_doc!)
