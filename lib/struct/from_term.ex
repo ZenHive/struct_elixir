@@ -146,7 +146,7 @@ defmodule Struct.FromTerm do
       def from_term!(value) do
         case from_term(value) do
           {:error, reason} -> raise "#{unquote(caller_module)}.from_term failed: #{reason}"
-          ok -> ok
+          {:ok, value} -> value
         end
       end
 
@@ -178,7 +178,7 @@ defmodule Struct.FromTerm do
       def from_term_list!(list) do
         case from_term_list(list) do
           {:error, reason} -> raise "#{unquote(caller_module)}.from_term_list! failed: #{reason}"
-          ok -> ok
+          {:ok, list} -> list
         end
       end
 
