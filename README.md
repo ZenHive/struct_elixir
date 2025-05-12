@@ -96,7 +96,7 @@ See `Struct.DeriveModuleBehaviour`
 ```elixir
 def deps do
   [
-    {:struct, git: "https://github.com/ZenHive/struct_elixir.git", tag: "v0.1.3"},
+    {:struct, git: "https://github.com/ZenHive/struct_elixir.git", tag: "v0.2.0"},
   ]
 end
 ```
