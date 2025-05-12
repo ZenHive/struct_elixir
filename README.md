@@ -72,6 +72,9 @@ end
 # Supported types:
 
 - `:integer`
+- `:neg_integer`
+- `:non_neg_integer`
+- `:pos_integer`
 - `:string`
 - `:boolean`
 - `:float`

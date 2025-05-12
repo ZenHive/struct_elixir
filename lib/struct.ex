@@ -7,6 +7,9 @@ defmodule Struct do
   @type variable_name :: atom()
   @type field_type ::
           :integer
+          | :neg_integer
+          | :non_neg_integer
+          | :pos_integer
           | :string
           | :boolean
           | :float
@@ -65,6 +68,18 @@ defmodule Struct do
 
   defp do_get_type(:integer) do
     quote do: integer()
+  end
+
+  defp do_get_type(:neg_integer) do
+    quote do: neg_integer()
+  end
+
+  defp do_get_type(:non_neg_integer) do
+    quote do: non_neg_integer()
+  end
+
+  defp do_get_type(:pos_integer) do
+    quote do: pos_integer()
   end
 
   defp do_get_type(:string) do

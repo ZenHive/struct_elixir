@@ -253,6 +253,42 @@ defmodule Struct.FromTerm do
     end
   end
 
+  defp do_parse_field(:neg_integer) do
+    quote do
+      case do
+        value when is_integer(value) and value < 0 ->
+          {:ok, value}
+
+        value ->
+          {:error, "Expected a neg integer, got #{inspect(value)}"}
+      end
+    end
+  end
+
+  defp do_parse_field(:non_neg_integer) do
+    quote do
+      case do
+        value when is_integer(value) and value >= 0 ->
+          {:ok, value}
+
+        value ->
+          {:error, "Expected a non neg integer, got #{inspect(value)}"}
+      end
+    end
+  end
+
+  defp do_parse_field(:pos_integer) do
+    quote do
+      case do
+        value when is_integer(value) and value > 0 ->
+          {:ok, value}
+
+        value ->
+          {:error, "Expected a pos integer, got #{inspect(value)}"}
+      end
+    end
+  end
+
   defp do_parse_field(:string) do
     error = quote do: {:error, "Expected a string, got #{inspect(value)}"}
 
