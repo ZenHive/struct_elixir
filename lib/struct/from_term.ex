@@ -154,9 +154,11 @@ defmodule Struct.FromTerm do
       @impl unquote(self_module)
       @spec from_term_list([term()]) :: {:ok, [t()]} | {:error, String.t()}
       def from_term_list(list) when is_list(list) do
-        Result.try_reduce(list, [], fn elem, acc ->
-          from_term(elem)
-          |> Result.map(&[&1 | acc])
+        Enum.reduce_while(list, {:ok, []}, fn elem, {:ok, acc} ->
+          case from_term(elem) do
+            {:ok, value} -> {:cont, {:ok, [value | acc]}}
+            {:error, error} -> {:halt, {:error, error}}
+          end
         end)
         |> case do
           {:error, reason} ->
@@ -341,11 +343,13 @@ defmodule Struct.FromTerm do
     quote do
       case do
         value when is_list(value) ->
-          Result.try_reduce(value, [], fn value, acc ->
-            value
-            |> unquote(do_parse_field(type))
-            |> Result.map(&[&1 | acc])
-            |> Result.map_err(&"Failed to parse list elem #{inspect(value)}: #{&1}")
+          Enum.reduce_while(value, {:ok, []}, fn value, {:ok, acc} ->
+            case value |> unquote(do_parse_field(type)) do
+              {:ok, parsed_value} -> 
+                {:cont, {:ok, [parsed_value | acc]}}
+              {:error, error} -> 
+                {:halt, {:error, "Failed to parse list elem #{inspect(value)}: #{error}"}}
+            end
           end)
           |> case do
             {:error, reason} -> {:error, reason}

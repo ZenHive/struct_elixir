@@ -8,5 +8,4 @@
   "makeup_erlang": {:hex, :makeup_erlang, "1.0.2", "03e1804074b3aa64d5fad7aa64601ed0fb395337b982d9bcf04029d68d51b6a7", [:mix], [{:makeup, "~> 1.0", [hex: :makeup, repo: "hexpm", optional: false]}], "hexpm", "af33ff7ef368d5893e4a267933e7744e46ce3cf1f61e2dccf53a111ed3aa3727"},
   "nimble_parsec": {:hex, :nimble_parsec, "1.4.2", "8efba0122db06df95bfaa78f791344a89352ba04baedd3849593bfce4d0dc1c6", [:mix], [], "hexpm", "4b21398942dda052b403bbe1da991ccd03a053668d147d53fb8c4e0efe09c973"},
   "option": {:git, "git@github.com:ZenHive/option_elixir.git", "405b80b7059b8e78f63beab0dff8cc0fc84da185", [tag: "v0.1.0"]},
-  "result": {:git, "git@github.com:ZenHive/result_elixir.git", "0e859663b5b8733331b56f02c955916df29fc42a", [tag: "v0.4.0"]},
 }
