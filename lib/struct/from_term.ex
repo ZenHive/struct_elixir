@@ -187,12 +187,22 @@ defmodule Struct.FromTerm do
       @doc unquote(@from_term_optional_doc)
       @impl unquote(self_module)
       @spec from_term_optional(term()) :: {:ok, t() | nil} | {:error, String.t()}
-      def from_term_optional(value), do: Option.map(value, &from_term/1)
+      def from_term_optional(value) do
+        case value do
+          nil -> {:ok, nil}
+          value -> from_term(value)
+        end
+      end
 
       @doc unquote(@from_term_optional_doc!)
       @impl unquote(self_module)
       @spec from_term_optional!(term()) :: t() | nil
-      def from_term_optional!(value), do: Option.map(value, &from_term!/1)
+      def from_term_optional!(value) do
+        case value do
+          nil -> nil
+          value -> from_term!(value)
+        end
+      end
     end
   end
 
