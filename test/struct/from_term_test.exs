@@ -402,6 +402,7 @@ defmodule Struct.FromTermTest do
     map = %{
       neg_integer: -5
     }
+
     expected = %NegInteger{neg_integer: -5}
     assert {:ok, expected} == NegInteger.from_term(map)
   end
@@ -410,17 +411,21 @@ defmodule Struct.FromTermTest do
     map = %{
       neg_integer: "str"
     }
+
     expected =
       {:error,
        "Failed to parse field neg_integer of Elixir.Struct.FromTermTest.NegInteger: Expected a neg integer, got \"str\""}
+
     assert expected == NegInteger.from_term(map)
 
     map = %{
       neg_integer: 0
     }
+
     expected =
       {:error,
        "Failed to parse field neg_integer of Elixir.Struct.FromTermTest.NegInteger: Expected a neg integer, got 0"}
+
     assert expected == NegInteger.from_term(map)
   end
 
@@ -428,6 +433,7 @@ defmodule Struct.FromTermTest do
     map = %{
       non_neg_integer: 0
     }
+
     expected = %NonNegInteger{non_neg_integer: 0}
     assert {:ok, expected} == NonNegInteger.from_term(map)
   end
@@ -436,17 +442,21 @@ defmodule Struct.FromTermTest do
     map = %{
       non_neg_integer: "str"
     }
+
     expected =
       {:error,
        "Failed to parse field non_neg_integer of Elixir.Struct.FromTermTest.NonNegInteger: Expected a non neg integer, got \"str\""}
+
     assert expected == NonNegInteger.from_term(map)
 
     map = %{
       non_neg_integer: -5
     }
+
     expected =
       {:error,
        "Failed to parse field non_neg_integer of Elixir.Struct.FromTermTest.NonNegInteger: Expected a non neg integer, got -5"}
+
     assert expected == NonNegInteger.from_term(map)
   end
 
@@ -454,6 +464,7 @@ defmodule Struct.FromTermTest do
     map = %{
       pos_integer: 1
     }
+
     expected = %PosInteger{pos_integer: 1}
     assert {:ok, expected} == PosInteger.from_term(map)
   end
@@ -462,17 +473,21 @@ defmodule Struct.FromTermTest do
     map = %{
       pos_integer: "str"
     }
+
     expected =
       {:error,
        "Failed to parse field pos_integer of Elixir.Struct.FromTermTest.PosInteger: Expected a pos integer, got \"str\""}
+
     assert expected == PosInteger.from_term(map)
 
     map = %{
       pos_integer: 0
     }
+
     expected =
       {:error,
        "Failed to parse field pos_integer of Elixir.Struct.FromTermTest.PosInteger: Expected a pos integer, got 0"}
+
     assert expected == PosInteger.from_term(map)
   end
 end

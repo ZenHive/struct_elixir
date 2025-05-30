@@ -16,6 +16,7 @@ defmodule Struct do
           | :any
           | {:list, field_type()}
           | {:option, field_type()}
+          | {:elixir_type, any()}
           | module()
 
   defmacro __using__({:{}, _, args}) do
@@ -104,6 +105,10 @@ defmodule Struct do
 
   defp do_get_type({:option, type}) do
     quote do: unquote(get_type(type)) | nil
+  end
+
+  defp do_get_type({:elixir_type, type}) do
+    quote do: unquote(type)
   end
 
   defp do_get_type(module) do

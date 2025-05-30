@@ -355,9 +355,10 @@ defmodule Struct.FromTerm do
         value when is_list(value) ->
           Enum.reduce_while(value, {:ok, []}, fn value, {:ok, acc} ->
             case value |> unquote(do_parse_field(type)) do
-              {:ok, parsed_value} -> 
+              {:ok, parsed_value} ->
                 {:cont, {:ok, [parsed_value | acc]}}
-              {:error, error} -> 
+
+              {:error, error} ->
                 {:halt, {:error, "Failed to parse list elem #{inspect(value)}: #{error}"}}
             end
           end)
@@ -379,6 +380,10 @@ defmodule Struct.FromTerm do
         value -> value |> unquote(do_parse_field(type))
       end
     end
+  end
+
+  defp do_parse_field({:elixir_type, _}) do
+    raise "#{__MODULE__} does not support type {:elixir_type, _}"
   end
 
   defp do_parse_field(module) do

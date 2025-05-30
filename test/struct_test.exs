@@ -6,7 +6,8 @@ defmodule StructTest do
     use Struct,
       basic_type: :string,
       optional_type: {:option, :integer},
-      list_type: {:list, :string}
+      list_type: {:list, :string},
+      elixir_type: {:elixir_type, map()}
   end
 
   defmodule EmptyDerives do
