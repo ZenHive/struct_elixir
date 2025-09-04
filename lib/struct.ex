@@ -16,6 +16,7 @@ defmodule Struct do
           | :any
           | {:list, field_type()}
           | {:option, field_type()}
+          | {:one_of, [field_type()]}
           | {:elixir_type, any()}
           | module()
 
@@ -46,7 +47,9 @@ defmodule Struct do
       defstruct unquote(keys)
 
       @type t :: %__MODULE__{
-              unquote_splicing(Enum.map(fields, fn {field, opts} -> {field, get_type(opts)} end))
+              unquote_splicing(
+                Enum.map(fields, fn {field, opts} -> {field, get_type_ast(opts)} end)
+              )
             }
 
       unquote_splicing(
@@ -64,54 +67,65 @@ defmodule Struct do
     end
   end
 
-  defp get_type(opts) when is_list(opts), do: opts |> Keyword.get(:type) |> do_get_type()
-  defp get_type(type), do: do_get_type(type)
+  defp get_type_ast(opts) when is_list(opts), do: opts |> Keyword.get(:type) |> do_get_type_ast()
+  defp get_type_ast(type), do: do_get_type_ast(type)
 
-  defp do_get_type(:integer) do
+  defp do_get_type_ast(:integer) do
     quote do: integer()
   end
 
-  defp do_get_type(:neg_integer) do
+  defp do_get_type_ast(:neg_integer) do
     quote do: neg_integer()
   end
 
-  defp do_get_type(:non_neg_integer) do
+  defp do_get_type_ast(:non_neg_integer) do
     quote do: non_neg_integer()
   end
 
-  defp do_get_type(:pos_integer) do
+  defp do_get_type_ast(:pos_integer) do
     quote do: pos_integer()
   end
 
-  defp do_get_type(:string) do
+  defp do_get_type_ast(:string) do
     quote do: String.t()
   end
 
-  defp do_get_type(:boolean) do
+  defp do_get_type_ast(:boolean) do
     quote do: boolean()
   end
 
-  defp do_get_type(:float) do
+  defp do_get_type_ast(:float) do
     quote do: float()
   end
 
-  defp do_get_type(:any) do
+  defp do_get_type_ast(:any) do
     quote do: any()
   end
 
-  defp do_get_type({:list, type}) do
-    quote do: list(unquote(get_type(type)))
+  defp do_get_type_ast({:list, type}) do
+    quote do: list(unquote(do_get_type_ast(type)))
   end
 
-  defp do_get_type({:option, type}) do
-    quote do: unquote(get_type(type)) | nil
+  defp do_get_type_ast({:option, type}) do
+    quote do: unquote(do_get_type_ast(type)) | nil
   end
 
-  defp do_get_type({:elixir_type, type}) do
+  defp do_get_type_ast({:one_of, types}) do
+    get_one_of_type_ast(types)
+  end
+
+  defp do_get_type_ast({:elixir_type, type}) do
     quote do: unquote(type)
   end
 
-  defp do_get_type(module) do
+  defp do_get_type_ast(module) do
     quote do: unquote(module).t()
+  end
+
+  @doc false
+  def get_one_of_type_ast(types) do
+    types
+    |> Enum.reverse()
+    |> Enum.reduce(fn type, acc -> quote do: unquote(do_get_type_ast(type)) | unquote(acc) end)
   end
 end

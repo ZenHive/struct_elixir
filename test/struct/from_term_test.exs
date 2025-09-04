@@ -25,7 +25,8 @@ defmodule Struct.FromTermTest do
         type: {:option, {:list, :string}},
         "Struct.FromTerm": [keys: "CompletelyCustomKey"]
       ],
-      bar: Bar
+      bar: Bar,
+      one_of_type: {:one_of, [:string, :integer, Bar]}
     }
   end
 
@@ -87,7 +88,8 @@ defmodule Struct.FromTermTest do
         :list_type => ["a", "b", "c"],
         :nested_type => ["x", "y", "z"],
         "CompletelyCustomKey" => ["1", "2", "3"],
-        :bar => %{basic_type: "bar value"}
+        :bar => %{basic_type: "bar value"},
+        :one_of_type => 42
       }
 
       expected = %Foo{
@@ -97,7 +99,8 @@ defmodule Struct.FromTermTest do
         list_type: ["a", "b", "c"],
         nested_type: ["x", "y", "z"],
         nested_type_custom_key: ["1", "2", "3"],
-        bar: %Bar{basic_type: "bar value"}
+        bar: %Bar{basic_type: "bar value"},
+        one_of_type: 42
       }
 
       assert {:ok, expected} == Foo.from_term(map)
@@ -111,7 +114,8 @@ defmodule Struct.FromTermTest do
         :list_type => ["a", "b", "c"],
         :nested_type => nil,
         "CompletelyCustomKey" => nil,
-        :bar => %{basic_type: "bar value"}
+        :bar => %{basic_type: "bar value"},
+        :one_of_type => 42
       }
 
       expected = %Foo{
@@ -121,7 +125,8 @@ defmodule Struct.FromTermTest do
         list_type: ["a", "b", "c"],
         nested_type: nil,
         nested_type_custom_key: nil,
-        bar: %Bar{basic_type: "bar value"}
+        bar: %Bar{basic_type: "bar value"},
+        one_of_type: 42
       }
 
       assert {:ok, expected} == Foo.from_term(map)
@@ -132,7 +137,8 @@ defmodule Struct.FromTermTest do
         :basic_type => "hello",
         "basicTypeCustomKey" => "custom hello",
         :list_type => ["a", "b", "c"],
-        :bar => %{basic_type: "bar value"}
+        :bar => %{basic_type: "bar value"},
+        :one_of_type => 42
       }
 
       expected = %Foo{
@@ -142,7 +148,8 @@ defmodule Struct.FromTermTest do
         list_type: ["a", "b", "c"],
         nested_type: nil,
         nested_type_custom_key: nil,
-        bar: %Bar{basic_type: "bar value"}
+        bar: %Bar{basic_type: "bar value"},
+        one_of_type: 42
       }
 
       assert {:ok, expected} == Foo.from_term(map)
@@ -157,7 +164,8 @@ defmodule Struct.FromTermTest do
         :list_type => [],
         :nested_type => ["x", "y", "z"],
         "CompletelyCustomKey" => ["1", "2", "3"],
-        :bar => %Bar{basic_type: "bar value"}
+        :bar => %Bar{basic_type: "bar value"},
+        :one_of_type => 42
       }
 
       expected = {
@@ -177,7 +185,8 @@ defmodule Struct.FromTermTest do
         :list_type => [],
         :nested_type => ["x", "y", "z"],
         "CompletelyCustomKey" => ["1", "2", "3"],
-        :bar => %Bar{basic_type: "bar value"}
+        :bar => %Bar{basic_type: "bar value"},
+        :one_of_type => 42
       }
 
       expected = {
@@ -197,7 +206,8 @@ defmodule Struct.FromTermTest do
         :list_type => 42,
         :nested_type => ["x", "y", "z"],
         "CompletelyCustomKey" => ["1", "2", "3"],
-        :bar => %Bar{basic_type: "bar value"}
+        :bar => %Bar{basic_type: "bar value"},
+        :one_of_type => 42
       }
 
       expected = {
@@ -217,7 +227,8 @@ defmodule Struct.FromTermTest do
         # Wrong type
         :nested_type => "not a list",
         "CompletelyCustomKey" => ["1", "2", "3"],
-        :bar => %Bar{basic_type: "bar value"}
+        :bar => %Bar{basic_type: "bar value"},
+        :one_of_type => 42
       }
 
       expected = {
@@ -237,7 +248,8 @@ defmodule Struct.FromTermTest do
         :nested_type => [],
         "CompletelyCustomKey" => ["1", "2", "3"],
         # Wrong type
-        :bar => nil
+        :bar => nil,
+        :one_of_type => 42
       }
 
       expected = {
@@ -280,7 +292,8 @@ defmodule Struct.FromTermTest do
         :list_type => [],
         :nested_type => [],
         "CompletelyCustomKey" => [],
-        :bar => %{basic_type: "bar value"}
+        :bar => %{basic_type: "bar value"},
+        :one_of_type => 42
       }
 
       expected = %Foo{
@@ -290,7 +303,8 @@ defmodule Struct.FromTermTest do
         list_type: [],
         nested_type: [],
         nested_type_custom_key: [],
-        bar: %Bar{basic_type: "bar value"}
+        bar: %Bar{basic_type: "bar value"},
+        one_of_type: 42
       }
 
       assert {:ok, expected} == Foo.from_term(map)
@@ -304,7 +318,8 @@ defmodule Struct.FromTermTest do
         :list_type => ["a", "b", "c"],
         :nested_type => ["x", "2", "z"],
         "CompletelyCustomKey" => ["1", "2", "3"],
-        :bar => %{basic_type: "bar value"}
+        :bar => %{basic_type: "bar value"},
+        :one_of_type => 42
       }
 
       expected = %Foo{
@@ -314,10 +329,59 @@ defmodule Struct.FromTermTest do
         list_type: ["a", "b", "c"],
         nested_type: ["x", "2", "z"],
         nested_type_custom_key: ["1", "2", "3"],
-        bar: %Bar{basic_type: "bar value"}
+        bar: %Bar{basic_type: "bar value"},
+        one_of_type: 42
       }
 
       assert {:ok, expected} == Foo.from_term(map)
+    end
+
+    test "one_of type" do
+      map = %{
+        :basic_type => "hello",
+        "basicTypeCustomKey" => "custom hello",
+        :optional_type => 123,
+        :list_type => ["a", "b", "c"],
+        :nested_type => ["x", "y", "z"],
+        "CompletelyCustomKey" => ["1", "2", "3"],
+        :bar => %{basic_type: "bar value"},
+        :one_of_type => 42
+      }
+
+      expected = %Foo{
+        basic_type: "hello",
+        basic_type_custom_key: "custom hello",
+        optional_type: 123,
+        list_type: ["a", "b", "c"],
+        nested_type: ["x", "y", "z"],
+        nested_type_custom_key: ["1", "2", "3"],
+        bar: %Bar{basic_type: "bar value"},
+        one_of_type: 42
+      }
+
+      assert {:ok, expected} == Foo.from_term(map)
+
+      map = %{map | :one_of_type => "a string"}
+      expected = %Foo{expected | :one_of_type => "a string"}
+      assert {:ok, expected} == Foo.from_term(map)
+
+      map = %{map | :one_of_type => %{basic_type: "valid value"}}
+      expected = %Foo{expected | :one_of_type => %Bar{basic_type: "valid value"}}
+      assert {:ok, expected} == Foo.from_term(map)
+
+      map = %{map | :one_of_type => %{basic_type: :invalid_value}}
+
+      assert {:error,
+              "Failed to parse field one_of_type of Elixir.Struct.FromTermTest.Foo: Expected " <>
+                "one of `String.t() | integer() | Bar`, found: %{basic_type: :invalid_value}"} ==
+               Foo.from_term(map)
+
+      map = %{map | :one_of_type => :yo}
+
+      assert {:error,
+              "Failed to parse field one_of_type of Elixir.Struct.FromTermTest.Foo: Expected " <>
+                "one of `String.t() | integer() | Bar`, found: :yo"} ==
+               Foo.from_term(map)
     end
   end
 

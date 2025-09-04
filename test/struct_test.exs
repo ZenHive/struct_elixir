@@ -2,6 +2,10 @@ defmodule StructTest do
   use ExUnit.Case, async: true
   doctest Struct
 
+  defmodule Empty do
+    use Struct, []
+  end
+
   defmodule Simple do
     use Struct,
       basic_type: :string,
@@ -27,7 +31,8 @@ defmodule StructTest do
       basic_type: [
         type: :string,
         "Struct.FromTerm": [keys: "basicType"]
-      ]
+      ],
+      one_of_type: {:one_of, [:string, :integer, :float]}
     }
   end
 

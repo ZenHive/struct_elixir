@@ -81,7 +81,8 @@ end
 - `:any`
 - `{:list, AnySupportedType}`
 - `{:option, AnySupportedType}`
-- `{:elixir_type, any_type()}` # FromTerm does not support this
+- `{:one_of, [type]}`
+- `{:elixir_type, elixir_type()}` # FromTerm does not support this
 - `Module`
 
 # Included Behaviours:

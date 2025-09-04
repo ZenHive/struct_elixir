@@ -108,16 +108,19 @@ defmodule Struct.FromTerm do
                for {field, opts} <- fields do
                  quote do
                    {:ok, unquote(get_field_var(field, __MODULE__))} <-
-                     unquote(Struct.FromTerm.get_value_ast(field, opts))
-                     |> unquote(Struct.FromTerm.parse_field_ast(opts))
-                     |> case do
-                       {:error, err} ->
-                         {:error,
-                          "Failed to parse field #{unquote(field)} of #{unquote(caller_module)}: #{err}"}
+                     (
+                       __value = unquote(Struct.FromTerm.get_value_ast(field, opts))
 
-                       ok ->
-                         ok
-                     end
+                       unquote(Struct.FromTerm.parse_field_ast(opts))
+                       |> case do
+                         {:error, err} ->
+                           {:error,
+                            "Failed to parse field #{unquote(field)} of #{unquote(caller_module)}: #{err}"}
+
+                         ok ->
+                           ok
+                       end
+                     )
                  end
                end
              ) do
@@ -248,14 +251,14 @@ defmodule Struct.FromTerm do
   @doc false
   def parse_field_ast(opts) when is_list(opts) do
     type = opts |> Keyword.get(:type)
-    do_parse_field(type)
+    do_parse_field_ast(type)
   end
 
-  def parse_field_ast(type), do: do_parse_field(type)
+  def parse_field_ast(type), do: do_parse_field_ast(type)
 
-  defp do_parse_field(:integer) do
+  defp do_parse_field_ast(:integer) do
     quote do
-      case do
+      case __value do
         value when is_integer(value) ->
           {:ok, value}
 
@@ -265,9 +268,9 @@ defmodule Struct.FromTerm do
     end
   end
 
-  defp do_parse_field(:neg_integer) do
+  defp do_parse_field_ast(:neg_integer) do
     quote do
-      case do
+      case __value do
         value when is_integer(value) and value < 0 ->
           {:ok, value}
 
@@ -277,9 +280,9 @@ defmodule Struct.FromTerm do
     end
   end
 
-  defp do_parse_field(:non_neg_integer) do
+  defp do_parse_field_ast(:non_neg_integer) do
     quote do
-      case do
+      case __value do
         value when is_integer(value) and value >= 0 ->
           {:ok, value}
 
@@ -289,9 +292,9 @@ defmodule Struct.FromTerm do
     end
   end
 
-  defp do_parse_field(:pos_integer) do
+  defp do_parse_field_ast(:pos_integer) do
     quote do
-      case do
+      case __value do
         value when is_integer(value) and value > 0 ->
           {:ok, value}
 
@@ -301,11 +304,11 @@ defmodule Struct.FromTerm do
     end
   end
 
-  defp do_parse_field(:string) do
+  defp do_parse_field_ast(:string) do
     error = quote do: {:error, "Expected a string, got #{inspect(value)}"}
 
     quote do
-      case do
+      case __value do
         value when is_binary(value) ->
           if String.valid?(value) do
             {:ok, value}
@@ -319,47 +322,40 @@ defmodule Struct.FromTerm do
     end
   end
 
-  defp do_parse_field(:boolean) do
+  defp do_parse_field_ast(:boolean) do
     quote do
-      case do
-        value when is_boolean(value) ->
-          {:ok, value}
-
-        value ->
-          {:error, "Expected a boolean, got #{inspect(value)}"}
+      case __value do
+        value when is_boolean(value) -> {:ok, value}
+        value -> {:error, "Expected a boolean, got #{inspect(value)}"}
       end
     end
   end
 
-  defp do_parse_field(:float) do
+  defp do_parse_field_ast(:float) do
     quote do
-      case do
-        value when is_float(value) ->
-          {:ok, value}
-
-        value ->
-          {:error, "Expected a float, got #{inspect(value)}"}
+      case __value do
+        value when is_float(value) -> {:ok, value}
+        value -> {:error, "Expected a float, got #{inspect(value)}"}
       end
     end
   end
 
-  defp do_parse_field(:any) do
-    quote do
-      then(&{:ok, &1})
-    end
+  defp do_parse_field_ast(:any) do
+    quote do: {:ok, __value}
   end
 
-  defp do_parse_field({:list, type}) do
+  defp do_parse_field_ast({:list, type}) do
     quote do
-      case do
-        value when is_list(value) ->
-          Enum.reduce_while(value, {:ok, []}, fn value, {:ok, acc} ->
-            case value |> unquote(do_parse_field(type)) do
+      case __value do
+        list when is_list(list) ->
+          list
+          |> Enum.reduce_while({:ok, []}, fn __value, {:ok, acc} ->
+            case unquote(do_parse_field_ast(type)) do
               {:ok, parsed_value} ->
                 {:cont, {:ok, [parsed_value | acc]}}
 
               {:error, error} ->
-                {:halt, {:error, "Failed to parse list elem #{inspect(value)}: #{error}"}}
+                {:halt, {:error, "Failed to parse list elem #{inspect(__value)}: #{error}"}}
             end
           end)
           |> case do
@@ -373,20 +369,41 @@ defmodule Struct.FromTerm do
     end
   end
 
-  defp do_parse_field({:option, type}) do
+  defp do_parse_field_ast({:option, type}) do
     quote do
-      case do
+      case __value do
         nil -> {:ok, nil}
-        value -> value |> unquote(do_parse_field(type))
+        __value -> unquote(do_parse_field_ast(type))
       end
     end
   end
 
-  defp do_parse_field({:elixir_type, _}) do
+  defp do_parse_field_ast({:one_of, types}) do
+    parse_one_of_field_ast(types, Struct.get_one_of_type_ast(types))
+  end
+
+  defp do_parse_field_ast({:elixir_type, _}) do
     raise "#{__MODULE__} does not support type {:elixir_type, _}"
   end
 
-  defp do_parse_field(module) do
-    quote do: unquote(module).from_term()
+  defp do_parse_field_ast(module) do
+    quote do: unquote(module).from_term(__value)
+  end
+
+  defp parse_one_of_field_ast([], types_ast) do
+    quote do
+      {:error,
+       "Expected one of `#{unquote(Macro.to_string(types_ast))}`, found: #{inspect(__value)}"}
+    end
+  end
+
+  defp parse_one_of_field_ast([type | rest], types_ast) do
+    quote do
+      unquote(do_parse_field_ast(type))
+      |> case do
+        {:ok, value} -> {:ok, value}
+        {:error, _} -> unquote(parse_one_of_field_ast(rest, types_ast))
+      end
+    end
   end
 end
