@@ -13,6 +13,8 @@ defmodule Struct do
           | :string
           | :boolean
           | :float
+          | :atom
+          | {:atom, atom()}
           | :any
           | {:list, field_type()}
           | {:option, field_type()}
@@ -96,6 +98,14 @@ defmodule Struct do
 
   defp do_get_type_ast(:float) do
     quote do: float()
+  end
+
+  defp do_get_type_ast(:atom) do
+    quote do: atom()
+  end
+
+  defp do_get_type_ast({:atom, value}) do
+    quote do: unquote(value)
   end
 
   defp do_get_type_ast(:any) do

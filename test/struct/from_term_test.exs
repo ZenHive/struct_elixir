@@ -79,6 +79,20 @@ defmodule Struct.FromTermTest do
     }
   end
 
+  defmodule GenericAtom do
+    use Struct, {
+      [Struct.FromTerm],
+      atom: :atom
+    }
+  end
+
+  defmodule SpecificAtom do
+    use Struct, {
+      [Struct.FromTerm],
+      atom: {:atom, :Hey}
+    }
+  end
+
   describe "from_term/1" do
     test "successfully creates struct with all fields" do
       map = %{
@@ -553,5 +567,58 @@ defmodule Struct.FromTermTest do
        "Failed to parse field pos_integer of Elixir.Struct.FromTermTest.PosInteger: Expected a pos integer, got 0"}
 
     assert expected == PosInteger.from_term(map)
+  end
+
+  test "Valid generic atom" do
+    map = %{atom: :hello}
+    expected = %GenericAtom{atom: :hello}
+    assert {:ok, expected} == GenericAtom.from_term(map)
+
+    # String not supported for generic atoms to avoid possible memory leaks
+    map = %{atom: "world"}
+
+    expected =
+      {:error,
+       "Failed to parse field atom of Elixir.Struct.FromTermTest.GenericAtom: Expected an atom, got \"world\""}
+
+    assert expected == GenericAtom.from_term(map)
+  end
+
+  test "Invalid generic atom" do
+    map = %{atom: 123}
+
+    expected =
+      {:error,
+       "Failed to parse field atom of Elixir.Struct.FromTermTest.GenericAtom: Expected an atom, got 123"}
+
+    assert expected == GenericAtom.from_term(map)
+  end
+
+  test "Valid specific atom" do
+    map = %{atom: :Hey}
+    expected = %SpecificAtom{atom: :Hey}
+    assert {:ok, expected} == SpecificAtom.from_term(map)
+
+    map = %{atom: "Hey"}
+    expected = %SpecificAtom{atom: :Hey}
+    assert {:ok, expected} == SpecificAtom.from_term(map)
+  end
+
+  test "Invalid specific atom" do
+    map = %{atom: :Nope}
+
+    expected =
+      {:error,
+       "Failed to parse field atom of Elixir.Struct.FromTermTest.SpecificAtom: Expected the atom Hey, got :Nope"}
+
+    assert expected == SpecificAtom.from_term(map)
+
+    map = %{atom: "Nope"}
+
+    expected =
+      {:error,
+       "Failed to parse field atom of Elixir.Struct.FromTermTest.SpecificAtom: Expected the atom Hey, got \"Nope\""}
+
+    assert expected == SpecificAtom.from_term(map)
   end
 end

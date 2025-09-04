@@ -78,6 +78,8 @@ end
 - `:string`
 - `:boolean`
 - `:float`
+- `:atom`
+- `{:atom, value}`
 - `:any`
 - `{:list, AnySupportedType}`
 - `{:option, AnySupportedType}`

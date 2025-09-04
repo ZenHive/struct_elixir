@@ -340,6 +340,26 @@ defmodule Struct.FromTerm do
     end
   end
 
+  defp do_parse_field_ast(:atom) do
+    quote do
+      case __value do
+        value when is_atom(value) -> {:ok, value}
+        # Don't support generic strings to atoms, that could lead to memory leaks
+        value -> {:error, "Expected an atom, got #{inspect(value)}"}
+      end
+    end
+  end
+
+  defp do_parse_field_ast({:atom, expected}) when is_atom(expected) do
+    quote do
+      cond do
+        __value == unquote(expected) -> {:ok, __value}
+        __value == unquote(Atom.to_string(expected)) -> {:ok, unquote(expected)}
+        true -> {:error, "Expected the atom #{unquote(expected)}, got #{inspect(__value)}"}
+      end
+    end
+  end
+
   defp do_parse_field_ast(:any) do
     quote do: {:ok, __value}
   end
