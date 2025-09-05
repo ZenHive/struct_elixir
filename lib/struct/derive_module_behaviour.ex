@@ -7,20 +7,32 @@ defmodule Struct.DeriveModuleBehaviour do
   This function will be called exactly once for each struct that derives your behaviour.
   It is expected to return the AST of the code your behaviour generates.
 
-  Args:
-  - field: A list of the struct field
-    Example:
-    ```elixir
-    [
+  Example:
+  ```elixir
+  # For the following struct definition
+  defmodule MyStruct do
+    use Struct, {
+      [Struct.FromTerm],
       field1: :integer,
       field2: SomeOtherModule,
       field3: [
         type: :integer, # Type MUST always be present in the list
         some_custom_option_for_a_behaviour: 42 # Can be any type
       ]
+    }
+  end
+
+  # Arguments passed to the derive function will be:
+  fields = [
+    field1: :integer,
+    field2: SomeOtherModule,
+    field3: [
+      type: :integer,
+      some_custom_option_for_a_behaviour: 42
     ]
-    ```
-  - module: The module that is currently defining a struct
+  ]
+  module = MyStruct
+  ```
 
   Must return either an AST or a list of ASTs
   (The list may also contain `nil` and `:nop`, those value will be ignored)
@@ -37,6 +49,6 @@ defmodule Struct.DeriveModuleBehaviour do
                     ]
                 }
               ],
-              caller_module :: module()
+              module :: module()
             ) :: Macro.t() | [Macro.t() | nil | :nop]
 end
