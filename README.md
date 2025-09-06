@@ -81,6 +81,7 @@ end
 - `:atom`
 - `{:atom, value}`
 - `:any`
+- `{:tuple, list_of_types}`
 - `{:list, AnySupportedType}`
 - `{:option, AnySupportedType}`
 - `{:one_of, [type]}`

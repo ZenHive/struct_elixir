@@ -28,11 +28,9 @@ defmodule StructTest do
     use Struct, {
       :debug,
       [],
-      basic_type: [
-        type: :string,
-        "Struct.FromTerm": [keys: "basicType"]
-      ],
-      one_of_type: {:one_of, [:string, :integer, :float]}
+      basic_type: :string,
+      one_of_type: {:one_of, [:string, :integer, :float]},
+      tuple_type: {:tuple, [:integer, :float, :string]}
     }
   end
 

@@ -16,6 +16,7 @@ defmodule Struct do
           | :atom
           | {:atom, atom()}
           | :any
+          | {:tuple, [field_type()]}
           | {:list, field_type()}
           | {:option, field_type()}
           | {:one_of, [field_type()]}
@@ -69,7 +70,14 @@ defmodule Struct do
     end
   end
 
-  defp get_type_ast(opts) when is_list(opts), do: opts |> Keyword.get(:type) |> do_get_type_ast()
+  defp get_type_ast(opts) when is_list(opts) do
+    opts
+    |> Keyword.get_lazy(:type, fn ->
+      raise ArgumentError, "type option is required when field type is a keyword list"
+    end)
+    |> do_get_type_ast()
+  end
+
   defp get_type_ast(type), do: do_get_type_ast(type)
 
   defp do_get_type_ast(:integer) do
@@ -112,6 +120,10 @@ defmodule Struct do
     quote do: any()
   end
 
+  defp do_get_type_ast({:tuple, types}) do
+    get_tuple_type_ast(types)
+  end
+
   defp do_get_type_ast({:list, type}) do
     quote do: list(unquote(do_get_type_ast(type)))
   end
@@ -133,9 +145,35 @@ defmodule Struct do
   end
 
   @doc false
-  def get_one_of_type_ast(types) do
-    types
-    |> Enum.reverse()
-    |> Enum.reduce(fn type, acc -> quote do: unquote(do_get_type_ast(type)) | unquote(acc) end)
+  def get_tuple_type_ast(sub_types) do
+    if sub_types |> Enum.take(2) |> Enum.count() != 2 do
+      raise ArgumentError, "tuple type must have at least two subtypes"
+    end
+
+    quote do
+      {
+        unquote_splicing(
+          sub_types
+          |> Enum.map(&do_get_type_ast/1)
+        )
+      }
+    end
+  end
+
+  @doc false
+  def get_one_of_type_ast([]),
+    do: raise(ArgumentError, "one_of type must have at least two subtype")
+
+  def get_one_of_type_ast(sub_types) do
+    [first | rest] = sub_types |> Enum.reverse()
+
+    if Enum.empty?(rest) do
+      raise ArgumentError, "one_of type must have at least two subtypes"
+    end
+
+    rest
+    |> Enum.reduce(do_get_type_ast(first), fn type, acc ->
+      quote do: unquote(do_get_type_ast(type)) | unquote(acc)
+    end)
   end
 end

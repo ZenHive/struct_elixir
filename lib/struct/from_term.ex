@@ -111,11 +111,11 @@ defmodule Struct.FromTerm do
         with unquote_splicing(
                for {field, opts} <- fields do
                  quote do
-                   {:ok, unquote(get_field_var(field, __MODULE__))} <-
+                   {:ok, unquote(get_field_var(field, module))} <-
                      (
                        __value = unquote(Struct.FromTerm.get_value_ast(field, opts))
 
-                       unquote(Struct.FromTerm.parse_field_ast(opts))
+                       unquote(Struct.FromTerm.parse_field_ast(opts, module))
                        |> case do
                          {:error, err} ->
                            {:error,
@@ -134,7 +134,7 @@ defmodule Struct.FromTerm do
               unquote_splicing(
                 for {field, _opts} <- fields do
                   quote do
-                    {unquote(field), unquote(get_field_var(field, __MODULE__))}
+                    {unquote(field), unquote(get_field_var(field, module))}
                   end
                 end
               )
@@ -144,7 +144,7 @@ defmodule Struct.FromTerm do
       end
 
       def from_term(value) do
-        {:error, "Expected a map for #{unquote(module)} data, got #{inspect(value)}"}
+        {:error, "Expected a map for #{unquote(module)} data, got: #{inspect(value)}"}
       end
 
       @doc unquote(@from_term_doc!)
@@ -178,7 +178,7 @@ defmodule Struct.FromTerm do
 
       def from_term_list(value) do
         {:error,
-         "Failed to parse list of #{unquote(module)}, expected a list got #{inspect(value)}"}
+         "Failed to parse list of #{unquote(module)}, expected a list got: #{inspect(value)}"}
       end
 
       @doc unquote(@from_term_list_doc!)
@@ -253,63 +253,64 @@ defmodule Struct.FromTerm do
   end
 
   @doc false
-  def parse_field_ast(opts) when is_list(opts) do
-    type = opts |> Keyword.get(:type)
-    do_parse_field_ast(type)
+  def parse_field_ast(opts, module) when is_list(opts) do
+    opts
+    |> Keyword.fetch!(:type)
+    |> do_parse_field_ast(module)
   end
 
-  def parse_field_ast(type), do: do_parse_field_ast(type)
+  def parse_field_ast(type, module), do: do_parse_field_ast(type, module)
 
-  defp do_parse_field_ast(:integer) do
+  defp do_parse_field_ast(:integer, _module) do
     quote do
       case __value do
         value when is_integer(value) ->
           {:ok, value}
 
         value ->
-          {:error, "Expected an integer, got #{inspect(value)}"}
+          {:error, "Expected an integer, got: #{inspect(value)}"}
       end
     end
   end
 
-  defp do_parse_field_ast(:neg_integer) do
+  defp do_parse_field_ast(:neg_integer, _module) do
     quote do
       case __value do
         value when is_integer(value) and value < 0 ->
           {:ok, value}
 
         value ->
-          {:error, "Expected a neg integer, got #{inspect(value)}"}
+          {:error, "Expected a neg integer, got: #{inspect(value)}"}
       end
     end
   end
 
-  defp do_parse_field_ast(:non_neg_integer) do
+  defp do_parse_field_ast(:non_neg_integer, _module) do
     quote do
       case __value do
         value when is_integer(value) and value >= 0 ->
           {:ok, value}
 
         value ->
-          {:error, "Expected a non neg integer, got #{inspect(value)}"}
+          {:error, "Expected a non neg integer, got: #{inspect(value)}"}
       end
     end
   end
 
-  defp do_parse_field_ast(:pos_integer) do
+  defp do_parse_field_ast(:pos_integer, _module) do
     quote do
       case __value do
         value when is_integer(value) and value > 0 ->
           {:ok, value}
 
         value ->
-          {:error, "Expected a pos integer, got #{inspect(value)}"}
+          {:error, "Expected a pos integer, got: #{inspect(value)}"}
       end
     end
   end
 
-  defp do_parse_field_ast(:string) do
-    error = quote do: {:error, "Expected a string, got #{inspect(value)}"}
+  defp do_parse_field_ast(:string, _module) do
+    error = quote do: {:error, "Expected a string, got: #{inspect(value)}"}
 
     quote do
       case __value do
@@ -326,55 +327,108 @@ defmodule Struct.FromTerm do
     end
   end
 
-  defp do_parse_field_ast(:boolean) do
+  defp do_parse_field_ast(:boolean, _module) do
     quote do
       case __value do
         value when is_boolean(value) -> {:ok, value}
-        value -> {:error, "Expected a boolean, got #{inspect(value)}"}
+        value -> {:error, "Expected a boolean, got: #{inspect(value)}"}
       end
     end
   end
 
-  defp do_parse_field_ast(:float) do
+  defp do_parse_field_ast(:float, _module) do
     quote do
       case __value do
         value when is_float(value) -> {:ok, value}
-        value -> {:error, "Expected a float, got #{inspect(value)}"}
+        value -> {:error, "Expected a float, got: #{inspect(value)}"}
       end
     end
   end
 
-  defp do_parse_field_ast(:atom) do
+  defp do_parse_field_ast(:atom, _module) do
     quote do
       case __value do
         value when is_atom(value) -> {:ok, value}
         # Don't support generic strings to atoms, that could lead to memory leaks
-        value -> {:error, "Expected an atom, got #{inspect(value)}"}
+        value -> {:error, "Expected an atom, got: #{inspect(value)}"}
       end
     end
   end
 
-  defp do_parse_field_ast({:atom, expected}) when is_atom(expected) do
+  defp do_parse_field_ast({:atom, expected}, _module) when is_atom(expected) do
     quote do
       cond do
         __value == unquote(expected) -> {:ok, __value}
         __value == unquote(Atom.to_string(expected)) -> {:ok, unquote(expected)}
-        true -> {:error, "Expected the atom #{unquote(expected)}, got #{inspect(__value)}"}
+        true -> {:error, "Expected the atom #{unquote(expected)}, got: #{inspect(__value)}"}
       end
     end
   end
 
-  defp do_parse_field_ast(:any) do
+  defp do_parse_field_ast(:any, _module) do
     quote do: {:ok, __value}
   end
 
-  defp do_parse_field_ast({:list, type}) do
+  defp do_parse_field_ast({:tuple, sub_types}, module) do
+    error =
+      quote do
+        {:error,
+         unquote(
+           "Expected #{sub_types |> Struct.get_tuple_type_ast() |> Macro.to_string()}, got: "
+         ) <> inspect(__untouched_value)}
+      end
+
+    elem_var_names =
+      sub_types
+      |> Enum.with_index()
+      |> Enum.map(fn {_type, index} -> Macro.var(:"elem_#{index}", module) end)
+
+    elem_parsers = sub_types |> Enum.map(&do_parse_field_ast(&1, module))
+
+    [{last_elem_var_name, last_elem_parser} | rest] =
+      Enum.zip(elem_var_names, elem_parsers) |> Enum.reverse()
+
+    last_elem_parsing_quote =
+      quote do
+        __value = unquote(last_elem_var_name)
+
+        unquote(last_elem_parser)
+        |> case do
+          {:ok, unquote(last_elem_var_name)} -> {:ok, {unquote_splicing(elem_var_names)}}
+          {:error, error} -> unquote(error)
+        end
+      end
+
+    elems_parser =
+      Enum.reduce(rest, last_elem_parsing_quote, fn {elem_var_name, elem_parser}, acc ->
+        quote do
+          __value = unquote(elem_var_name)
+
+          unquote(elem_parser)
+          |> case do
+            {:error, _} -> unquote(error)
+            {:ok, unquote(elem_var_name)} -> unquote(acc)
+          end
+        end
+      end)
+
+    quote do
+      __untouched_value = __value
+      case __value do
+        {unquote_splicing(elem_var_names)} -> unquote(elems_parser)
+        [unquote_splicing(elem_var_names)] -> unquote(elems_parser)
+        _ -> unquote(error)
+      end
+    end
+  end
+
+  defp do_parse_field_ast({:list, type}, module) do
     quote do
       case __value do
         list when is_list(list) ->
           list
           |> Enum.reduce_while({:ok, []}, fn __value, {:ok, acc} ->
-            case unquote(do_parse_field_ast(type)) do
+            case unquote(do_parse_field_ast(type, module)) do
               {:ok, parsed_value} ->
                 {:cont, {:ok, [parsed_value | acc]}}
 
@@ -388,45 +442,45 @@ defmodule Struct.FromTerm do
           end
 
         value ->
-          {:error, "Expected a list, got #{inspect(value)}"}
+          {:error, "Expected a list, got: #{inspect(value)}"}
       end
     end
   end
 
-  defp do_parse_field_ast({:option, type}) do
+  defp do_parse_field_ast({:option, type}, module) do
     quote do
       case __value do
         nil -> {:ok, nil}
-        __value -> unquote(do_parse_field_ast(type))
+        __value -> unquote(do_parse_field_ast(type, module))
       end
     end
   end
 
-  defp do_parse_field_ast({:one_of, types}) do
-    parse_one_of_field_ast(types, Struct.get_one_of_type_ast(types))
+  defp do_parse_field_ast({:one_of, sub_types}, module) do
+    parse_one_of_field_ast(sub_types, Struct.get_one_of_type_ast(sub_types), module)
   end
 
-  defp do_parse_field_ast({:elixir_type, _}) do
+  defp do_parse_field_ast({:elixir_type, _}, _module) do
     raise "#{__MODULE__} does not support type {:elixir_type, _}"
   end
 
-  defp do_parse_field_ast(module) do
-    quote do: unquote(module).from_term(__value)
+  defp do_parse_field_ast(type_module, _module) do
+    quote do: unquote(type_module).from_term(__value)
   end
 
-  defp parse_one_of_field_ast([], types_ast) do
+  defp parse_one_of_field_ast([], type_ast, _module) do
     quote do
       {:error,
-       "Expected one of `#{unquote(Macro.to_string(types_ast))}`, found: #{inspect(__value)}"}
+       unquote("Expected one of `#{Macro.to_string(type_ast)}`, got: ") <> inspect(__value)}
     end
   end
 
-  defp parse_one_of_field_ast([type | rest], types_ast) do
+  defp parse_one_of_field_ast([type | rest], type_ast, module) do
     quote do
-      unquote(do_parse_field_ast(type))
+      unquote(do_parse_field_ast(type, module))
       |> case do
         {:ok, value} -> {:ok, value}
-        {:error, _} -> unquote(parse_one_of_field_ast(rest, types_ast))
+        {:error, _} -> unquote(parse_one_of_field_ast(rest, type_ast, module))
       end
     end
   end
