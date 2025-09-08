@@ -50,6 +50,6 @@ defmodule Struct.Derive do
                 }
               ],
               module(),
-              Macro :: Env.t()
+              Macro.Env.t()
             ) :: Macro.t() | [Macro.t() | nil | :nop]
 end

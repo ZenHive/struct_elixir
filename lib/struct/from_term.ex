@@ -116,9 +116,9 @@ defmodule Struct.FromTerm do
                  quote do
                    {:ok, unquote(get_field_var(field, module))} <-
                      (
-                       __value = unquote(Struct.FromTerm.get_value_ast(field, opts, macro_env))
+                       __value = unquote(get_value_ast(field, opts, macro_env))
 
-                       unquote(Struct.FromTerm.parse_field_ast(opts, module))
+                       unquote(parse_field_ast(opts, module))
                        |> case do
                          {:error, err} ->
                            {:error,
@@ -221,7 +221,7 @@ defmodule Struct.FromTerm do
   end
 
   @doc false
-  def get_value_ast(field_name, [_type | opts], macro_env) do
+  defp get_value_ast(field_name, [_type | opts], macro_env) do
     opts =
       opts
       |> Enum.find_value([], fn {module, opts} ->
@@ -240,18 +240,18 @@ defmodule Struct.FromTerm do
     end
   end
 
-  def get_value_ast(field_name, _type, _macro_env) do
+  defp get_value_ast(field_name, _type, _macro_env) do
     quote do
       unquote(default_get_value_keys(field_name))
       |> Enum.find_value(fn key -> data[key] end)
     end
   end
 
-  def default_get_value_keys(field_name), do: [field_name, Atom.to_string(field_name)]
+  defp default_get_value_keys(field_name), do: [field_name, Atom.to_string(field_name)]
 
   @doc false
-  def parse_field_ast([type | _opts], module), do: do_parse_field_ast(type, module)
-  def parse_field_ast(type, module), do: do_parse_field_ast(type, module)
+  defp parse_field_ast([type | _opts], module), do: do_parse_field_ast(type, module)
+  defp parse_field_ast(type, module), do: do_parse_field_ast(type, module)
 
   defp do_parse_field_ast(:integer, _module) do
     quote do
