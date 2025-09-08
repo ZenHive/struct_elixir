@@ -1,4 +1,4 @@
-defmodule Struct.FromTerm do
+defmodule Struct.FromMap do
   @moduledoc """
   Use as a `Struct` derive to implement the following callbacks automatically
 
@@ -6,18 +6,18 @@ defmodule Struct.FromTerm do
   ```elixir
   defmodule MyStruct do
     use Struct, {
-      [Struct.FromTerm],
+      [Struct.FromMap],
 
       # Simple field
       field1: :string,
 
       # Field with custom type
-      field2: SomeOtherStruct, # `SomeOtherStruct` must implement `Struct.FromTerm`
+      field2: SomeOtherStruct, # `SomeOtherStruct` must implement `Struct.FromMap`
 
       # Field with custom keys
       field3: [
         :integer
-        {Struct.FromTerm, keys: "custom_key"} # Specify a custom key (can also be a list of keys)
+        {Struct.FromMap, keys: "custom_key"} # Specify a custom key (can also be a list of keys)
       ],
       # The keys we look for are always: [:field_name, "field_name"] ++ custom_keys
       # The example above has the following valid keys for field3: [:field3, "field3", "custom_key"]
@@ -25,13 +25,13 @@ defmodule Struct.FromTerm do
       # Field with default value
       field4: [
         :integer,
-        {Struct.FromTerm, default: 42} # Specify a default value when the keys are not found in the map
+        {Struct.FromMap, default: 42} # Specify a default value when the keys are not found in the map
       ],
 
       # It is possible to use multiple options
       field5: [
         :integer,
-        {Struct.FromTerm,
+        {Struct.FromMap,
           keys: ["field_4", "Field4", "Field_4", 4],
           default: 42
         }
@@ -43,61 +43,66 @@ defmodule Struct.FromTerm do
 
   @typep t :: any
 
-  @from_term_doc """
-  Parses a term into the struct, validating and converting each field.
+  @from_map_doc """
+  Parses a map into the struct, validating and converting each field.
 
   Returns `{:ok, struct}` on success or `{:error, reason}` on failure.
 
-  Will always return an error if the given term is not a map
+  This function never raises an error. If you pass an unexpected value it will return
+  `{:error, reason}`.
   """
-  @doc @from_term_doc
-  @callback from_term(term()) :: {:ok, t()} | {:error, String.t()}
+  @doc @from_map_doc
+  @callback from_map(map()) :: {:ok, t()} | {:error, String.t()}
 
-  @from_term_doc! """
-  Parses a term into the struct, validating and converting each field.
+  @from_map_doc! """
+  Parses a map into the struct, validating and converting each field.
 
   Returns the struct on success or raises an error on failure.
-
-  Will always raise an error if the given term is not a map
   """
-  @doc @from_term_doc!
-  @callback from_term!(term()) :: t()
+  @doc @from_map_doc!
+  @callback from_map!(map()) :: t()
 
-  @from_term_list_doc """
-  Parses a list of terms into a list of structs using `from_term/1`.
+  @from_map_list_doc """
+  Parses a list of maps into a list of structs using `from_map/1`.
 
   Returns `{:ok, [struct, ...]}` on success or `{:error, reason}` on failure.
 
   Stops at the first error
-  """
-  @doc @from_term_list_doc
-  @callback from_term_list(term()) :: {:ok, [t()]} | {:error, String.t()}
 
-  @from_term_list_doc! """
-  Parses a list of terms into a list of structs using `from_term/1`.
+  This function never raises an error. If you pass an unexpected value it will return
+  `{:error, reason}`.
+  """
+  @doc @from_map_list_doc
+  @callback from_map_list(map()) :: {:ok, [t()]} | {:error, String.t()}
+
+  @from_map_list_doc! """
+  Parses a list of maps into a list of structs using `from_map/1`.
 
   Returns `[struct, ...]` on success or raises an error on failure.
 
   Stops at the first error
   """
-  @doc @from_term_list_doc!
-  @callback from_term_list!(term()) :: [t()]
+  @doc @from_map_list_doc!
+  @callback from_map_list!(map()) :: [t()]
 
-  @from_term_optional_doc """
-  Parses a term into a `struct | nil` using `from_term/1`.
+  @from_map_optional_doc """
+  Parses `map() | nil` into `struct | nil` using `from_map/1`.
 
   Returns `{:ok, struct | nil}` or `{:error, reason}`.
-  """
-  @doc @from_term_optional_doc
-  @callback from_term_optional(term()) :: {:ok, t() | nil} | {:error, String.t()}
 
-  @from_term_optional_doc! """
-  Parses a term into a `struct | nil` using `from_term!/1`.
+  This function never raises an error. If you pass an unexpected value it will return
+  `{:error, reason}`.
+  """
+  @doc @from_map_optional_doc
+  @callback from_map_optional(map()) :: {:ok, t() | nil} | {:error, String.t()}
+
+  @from_map_optional_doc! """
+  Parses `map() | nil` into `struct | nil` using `from_map!/1`.
 
   Returns `struct | nil` or raises an error on failure.
   """
-  @doc @from_term_optional_doc!
-  @callback from_term_optional!(term()) :: t() | nil
+  @doc @from_map_optional_doc!
+  @callback from_map_optional!(map()) :: t() | nil
 
   @behaviour Struct.Derive
 
@@ -107,10 +112,10 @@ defmodule Struct.FromTerm do
     quote do
       @behaviour unquote(__MODULE__)
 
-      @doc unquote(@from_term_doc)
+      @doc unquote(@from_map_doc)
       @impl unquote(__MODULE__)
-      @spec from_term(term()) :: {:ok, t()} | {:error, String.t()}
-      def from_term(data) when is_map(data) do
+      @spec from_map(map()) :: {:ok, t()} | {:error, String.t()}
+      def from_map(data) when is_map(data) do
         with unquote_splicing(
                for {field, opts} <- fields do
                  quote do
@@ -146,26 +151,26 @@ defmodule Struct.FromTerm do
         end
       end
 
-      def from_term(value) do
+      def from_map(value) do
         {:error, "Expected a map for #{unquote(module)} data, got: #{inspect(value)}"}
       end
 
-      @doc unquote(@from_term_doc!)
+      @doc unquote(@from_map_doc!)
       @impl unquote(__MODULE__)
-      @spec from_term!(term()) :: t()
-      def from_term!(value) do
-        case from_term(value) do
-          {:error, reason} -> raise "#{unquote(module)}.from_term failed: #{reason}"
+      @spec from_map!(map()) :: t()
+      def from_map!(value) do
+        case from_map(value) do
+          {:error, reason} -> raise "#{unquote(module)}.from_map failed: #{reason}"
           {:ok, value} -> value
         end
       end
 
-      @doc unquote(@from_term_list_doc)
+      @doc unquote(@from_map_list_doc)
       @impl unquote(__MODULE__)
-      @spec from_term_list([term()]) :: {:ok, [t()]} | {:error, String.t()}
-      def from_term_list(list) when is_list(list) do
+      @spec from_map_list([map()]) :: {:ok, [t()]} | {:error, String.t()}
+      def from_map_list(list) when is_list(list) do
         Enum.reduce_while(list, {:ok, []}, fn elem, {:ok, acc} ->
-          case from_term(elem) do
+          case from_map(elem) do
             {:ok, value} -> {:cont, {:ok, [value | acc]}}
             {:error, error} -> {:halt, {:error, error}}
           end
@@ -179,38 +184,38 @@ defmodule Struct.FromTerm do
         end
       end
 
-      def from_term_list(value) do
+      def from_map_list(value) do
         {:error,
          "Failed to parse list of #{unquote(module)}, expected a list got: #{inspect(value)}"}
       end
 
-      @doc unquote(@from_term_list_doc!)
+      @doc unquote(@from_map_list_doc!)
       @impl unquote(__MODULE__)
-      @spec from_term_list!([term()]) :: [t()]
-      def from_term_list!(list) do
-        case from_term_list(list) do
-          {:error, reason} -> raise "#{unquote(module)}.from_term_list! failed: #{reason}"
+      @spec from_map_list!([map()]) :: [t()]
+      def from_map_list!(list) do
+        case from_map_list(list) do
+          {:error, reason} -> raise "#{unquote(module)}.from_map_list! failed: #{reason}"
           {:ok, list} -> list
         end
       end
 
-      @doc unquote(@from_term_optional_doc)
+      @doc unquote(@from_map_optional_doc)
       @impl unquote(__MODULE__)
-      @spec from_term_optional(term()) :: {:ok, t() | nil} | {:error, String.t()}
-      def from_term_optional(value) do
+      @spec from_map_optional(map()) :: {:ok, t() | nil} | {:error, String.t()}
+      def from_map_optional(value) do
         case value do
           nil -> {:ok, nil}
-          value -> from_term(value)
+          value -> from_map(value)
         end
       end
 
-      @doc unquote(@from_term_optional_doc!)
+      @doc unquote(@from_map_optional_doc!)
       @impl unquote(__MODULE__)
-      @spec from_term_optional!(term()) :: t() | nil
-      def from_term_optional!(value) do
+      @spec from_map_optional!(map()) :: t() | nil
+      def from_map_optional!(value) do
         case value do
           nil -> nil
-          value -> from_term!(value)
+          value -> from_map!(value)
         end
       end
     end
@@ -225,7 +230,7 @@ defmodule Struct.FromTerm do
     opts =
       opts
       |> Enum.find_value([], fn {module, opts} ->
-        if Macro.expand(module, macro_env) == Struct.FromTerm, do: opts, else: nil
+        if Macro.expand(module, macro_env) == __MODULE__, do: opts, else: nil
       end)
 
     custom_keys = opts |> Keyword.get(:keys) |> List.wrap()
@@ -458,7 +463,7 @@ defmodule Struct.FromTerm do
   end
 
   defp do_parse_field_ast(type_module, _module) do
-    quote do: unquote(type_module).from_term(__value)
+    quote do: unquote(type_module).from_map(__value)
   end
 
   defp parse_one_of_field_ast([], type_ast, _module) do

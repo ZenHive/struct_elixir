@@ -17,7 +17,7 @@ defmodule StructTest do
   defmodule EmptyDerives do
     use Struct, {
       [],
-      basic_type: [:string, {Struct.FromTerm, keys: "basicType"}]
+      basic_type: [:string, {Struct.FromMap, keys: "basicType"}]
     }
   end
 
@@ -33,29 +33,29 @@ defmodule StructTest do
 
   defmodule WithDerive do
     use Struct, {
-      [Struct.FromTerm],
+      [Struct.FromMap],
       basic_type: :string
     }
   end
 
   defmodule WithDeriveAndCustomOption do
     use Struct, {
-      [Struct.FromTerm],
+      [Struct.FromMap],
       basic_type: [
         :string,
-        {Struct.FromTerm, keys: "basicType"}
+        {Struct.FromMap, keys: "basicType"}
       ]
     }
   end
 
   defmodule Nested do
     use Struct, {
-      [Struct.FromTerm],
+      [Struct.FromMap],
       basic_type: :string,
       nested_type: {:option, {:list, :string}},
       nested_type_custom_key: [
         {:option, {:list, WithDerive}},
-        {Struct.FromTerm, keys: "nestedTypeCustomKey"}
+        {Struct.FromMap, keys: "nestedTypeCustomKey"}
       ]
     }
   end

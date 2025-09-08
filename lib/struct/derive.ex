@@ -12,12 +12,12 @@ defmodule Struct.Derive do
   # For the following struct definition
   defmodule MyStruct do
     use Struct, {
-      [Struct.FromTerm],
+      [Struct.FromMap],
       field1: :integer,
       field2: SomeOtherModule,
       field3: [
         :integer,
-        {Struct.FormTerm, default: 42}
+        {Struct.FromMap, default: 42}
       ]
     }
   end
@@ -28,7 +28,7 @@ defmodule Struct.Derive do
     field2: SomeOtherModule,
     field3: [
       :integer,
-      {Struct.FormTerm, default: 42}
+      {Struct.FromMap, default: 42}
     ]
   ]
   module = MyStruct
