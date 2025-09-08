@@ -94,7 +94,7 @@ end
 
 # How to implement your own behaviours:
 
-See `Struct.DeriveModuleBehaviour`
+See `Struct.Derive`
 
 # Installation
 

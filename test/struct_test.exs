@@ -17,10 +17,7 @@ defmodule StructTest do
   defmodule EmptyDerives do
     use Struct, {
       [],
-      basic_type: [
-        type: :string,
-        "Struct.FromTerm": [keys: "basicType"]
-      ]
+      basic_type: [:string, {Struct.FromTerm, keys: "basicType"}]
     }
   end
 
@@ -45,8 +42,8 @@ defmodule StructTest do
     use Struct, {
       [Struct.FromTerm],
       basic_type: [
-        type: :string,
-        "Struct.FromTerm": [keys: "basicType"]
+        :string,
+        {Struct.FromTerm, keys: "basicType"}
       ]
     }
   end
@@ -57,8 +54,8 @@ defmodule StructTest do
       basic_type: :string,
       nested_type: {:option, {:list, :string}},
       nested_type_custom_key: [
-        type: {:option, {:list, WithDerive}},
-        "Struct.FromTerm": [keys: "nestedTypeCustomKey"]
+        {:option, {:list, WithDerive}},
+        {Struct.FromTerm, keys: "nestedTypeCustomKey"}
       ]
     }
   end

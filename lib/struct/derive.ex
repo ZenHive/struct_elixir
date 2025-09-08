@@ -1,4 +1,4 @@
-defmodule Struct.DeriveModuleBehaviour do
+defmodule Struct.Derive do
   @moduledoc """
   Defines the callback that must be implemented by a module to be able to use it as a struct derive.
   """
@@ -16,8 +16,8 @@ defmodule Struct.DeriveModuleBehaviour do
       field1: :integer,
       field2: SomeOtherModule,
       field3: [
-        type: :integer, # Type MUST always be present in the list
-        some_custom_option_for_a_behaviour: 42 # Can be any type
+        :integer,
+        {Struct.FormTerm, default: 42}
       ]
     }
   end
@@ -27,8 +27,8 @@ defmodule Struct.DeriveModuleBehaviour do
     field1: :integer,
     field2: SomeOtherModule,
     field3: [
-      type: :integer,
-      some_custom_option_for_a_behaviour: 42
+      :integer,
+      {Struct.FormTerm, default: 42}
     ]
   ]
   module = MyStruct
@@ -43,12 +43,13 @@ defmodule Struct.DeriveModuleBehaviour do
                   Struct.variable_name(),
                   Struct.field_type()
                   | [
-                      # type MUST be included in the list
-                      {:type, Struct.field_type()}
-                      | {atom(), any()}
+                      # First elem is Struct.field_type(), the rest are options {module(), any()}
+                      Struct.field_type()
+                      | {module(), any()}
                     ]
                 }
               ],
-              module :: module()
+              module(),
+              Macro :: Env.t()
             ) :: Macro.t() | [Macro.t() | nil | :nop]
 end

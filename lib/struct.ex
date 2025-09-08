@@ -60,7 +60,7 @@ defmodule Struct do
           quote do
             (unquote_splicing(
                Macro.expand(derive_module, __ENV__)
-               |> apply(:derive, [fields, module])
+               |> apply(:derive, [fields, module, __ENV__])
                |> List.wrap()
              ))
           end
@@ -70,14 +70,8 @@ defmodule Struct do
     end
   end
 
-  defp get_type_ast(opts) when is_list(opts) do
-    opts
-    |> Keyword.get_lazy(:type, fn ->
-      raise ArgumentError, "type option is required when field type is a keyword list"
-    end)
-    |> do_get_type_ast()
-  end
-
+  defp get_type_ast([type | _opts]), do: do_get_type_ast(type)
+  defp get_type_ast([]), do: raise(ArgumentError, "field type cannot be empty")
   defp get_type_ast(type), do: do_get_type_ast(type)
 
   defp do_get_type_ast(:integer) do

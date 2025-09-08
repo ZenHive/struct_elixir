@@ -11,27 +11,30 @@ defmodule Struct.FromTerm do
       # Simple field
       field1: :string,
 
+      # Field with custom type
+      field2: SomeOtherStruct, # `SomeOtherStruct` must implement `Struct.FromTerm`
+
       # Field with custom keys
-      field2: [
-        type: SomeOtherStruct, # `SomeOtherStruct` must implement `Struct.FromTerm`
-        "Struct.FromTerm": [keys: "custom_key"] # Specify a custom key (can also be a list of keys)
+      field3: [
+        :integer
+        {Struct.FromTerm, keys: "custom_key"} # Specify a custom key (can also be a list of keys)
       ],
       # The keys we look for are always: [:field_name, "field_name"] ++ custom_keys
-      # ie: example above has the following valid keys for field2: [:field2, "field2", "custom_key"]
+      # The example above has the following valid keys for field3: [:field3, "field3", "custom_key"]
 
       # Field with default value
-      field3: [
-        type: :integer,
-        "Struct.FromTerm": [default: 42] # Specify a default value when the keys are not found in the map
-      ]
+      field4: [
+        :integer,
+        {Struct.FromTerm, default: 42} # Specify a default value when the keys are not found in the map
+      ],
 
       # It is possible to use multiple options
-      field4: [
-        type: :integer,
-        "Struct.FromTerm": [
+      field5: [
+        :integer,
+        {Struct.FromTerm,
           keys: ["field_4", "Field4", "Field_4", 4],
           default: 42
-        ]
+        }
       ]
     }
   end
@@ -96,11 +99,11 @@ defmodule Struct.FromTerm do
   @doc @from_term_optional_doc!
   @callback from_term_optional!(term()) :: t() | nil
 
-  @behaviour Struct.DeriveModuleBehaviour
+  @behaviour Struct.Derive
 
   @doc false
-  @impl Struct.DeriveModuleBehaviour
-  def derive(fields, module) do
+  @impl Struct.Derive
+  def derive(fields, module, macro_env) do
     quote do
       @behaviour unquote(__MODULE__)
 
@@ -113,7 +116,7 @@ defmodule Struct.FromTerm do
                  quote do
                    {:ok, unquote(get_field_var(field, module))} <-
                      (
-                       __value = unquote(Struct.FromTerm.get_value_ast(field, opts))
+                       __value = unquote(Struct.FromTerm.get_value_ast(field, opts, macro_env))
 
                        unquote(Struct.FromTerm.parse_field_ast(opts, module))
                        |> case do
@@ -218,47 +221,36 @@ defmodule Struct.FromTerm do
   end
 
   @doc false
-  def get_value_ast(field_name, opts) when is_list(opts) do
+  def get_value_ast(field_name, [_type | opts], macro_env) do
+    opts =
+      opts
+      |> Enum.find_value([], fn {module, opts} ->
+        if Macro.expand(module, macro_env) == Struct.FromTerm, do: opts, else: nil
+      end)
+
+    custom_keys = opts |> Keyword.get(:keys) |> List.wrap()
+    keys = default_get_value_keys(field_name) ++ custom_keys
+
+    default_value = opts |> Keyword.get(:default)
+
     quote do
-      value = data[unquote(field_name)]
-
-      unquote_splicing(
-        if from_term_opts = Keyword.get(opts, :"Struct.FromTerm") do
-          [
-            if keys = Keyword.get(from_term_opts, :keys) do
-              case keys do
-                keys when is_list(keys) ->
-                  quote do
-                    value = value || unquote(keys) |> Enum.find_value(fn key -> data[key] end)
-                  end
-
-                key ->
-                  quote do: value = value || data[unquote(key)]
-              end
-            end,
-            if default = Keyword.get(from_term_opts, :default) do
-              # TODO Check that default has the right type at compile time
-              quote do: value = value || unquote(default)
-            end
-          ]
-        end
-        |> Enum.filter(&(&1 != nil))
-      )
+      unquote(keys)
+      |> Enum.find_value(fn key -> data[key] end) ||
+        unquote(default_value)
     end
   end
 
-  def get_value_ast(field_name, _type) do
-    string_key = Atom.to_string(field_name)
-    quote do: data[unquote(field_name)] || data[unquote(string_key)]
+  def get_value_ast(field_name, _type, _macro_env) do
+    quote do
+      unquote(default_get_value_keys(field_name))
+      |> Enum.find_value(fn key -> data[key] end)
+    end
   end
+
+  def default_get_value_keys(field_name), do: [field_name, Atom.to_string(field_name)]
 
   @doc false
-  def parse_field_ast(opts, module) when is_list(opts) do
-    opts
-    |> Keyword.fetch!(:type)
-    |> do_parse_field_ast(module)
-  end
-
+  def parse_field_ast([type | _opts], module), do: do_parse_field_ast(type, module)
   def parse_field_ast(type, module), do: do_parse_field_ast(type, module)
 
   defp do_parse_field_ast(:integer, _module) do
@@ -414,6 +406,7 @@ defmodule Struct.FromTerm do
 
     quote do
       __untouched_value = __value
+
       case __value do
         {unquote_splicing(elem_var_names)} -> unquote(elems_parser)
         [unquote_splicing(elem_var_names)] -> unquote(elems_parser)

@@ -16,16 +16,17 @@ defmodule Struct.FromTermTest do
         [Struct.FromTerm],
         basic_type: :string,
         basic_type_custom_key: [
-          type: :string,
-          "Struct.FromTerm": [keys: "basicTypeCustomKey"]
+          :string,
+          {Struct.FromTerm, keys: "basicTypeCustomKey"}
         ],
         optional_type: {:option, :integer},
         list_type: {:list, :string},
         nested_type: {:option, {:list, :string}},
         nested_type_custom_key: [
-          type: {:option, {:list, :string}},
-          "Struct.FromTerm": [keys: "CompletelyCustomKey"]
+          {:option, {:list, :string}},
+          {Struct.FromTerm, keys: "CompletelyCustomKey"}
         ],
+        defaults_to_42: [{:option, :integer}, {Struct.FromTerm, default: 42}],
         bar: Bar,
         one_of_type: {:one_of, [:string, :integer, Bar]}
       }
@@ -39,6 +40,7 @@ defmodule Struct.FromTermTest do
         :list_type => ["a", "b", "c"],
         :nested_type => ["x", "y", "z"],
         "CompletelyCustomKey" => ["1", "2", "3"],
+        :defaults_to_42 => 78,
         :bar => %{basic_type: "bar value"},
         :one_of_type => 42
       }
@@ -50,6 +52,7 @@ defmodule Struct.FromTermTest do
         list_type: ["a", "b", "c"],
         nested_type: ["x", "y", "z"],
         nested_type_custom_key: ["1", "2", "3"],
+        defaults_to_42: 78,
         bar: %Bar{basic_type: "bar value"},
         one_of_type: 42
       }
@@ -76,6 +79,7 @@ defmodule Struct.FromTermTest do
         list_type: ["a", "b", "c"],
         nested_type: nil,
         nested_type_custom_key: nil,
+        defaults_to_42: 42,
         bar: %Bar{basic_type: "bar value"},
         one_of_type: 42
       }
@@ -88,6 +92,7 @@ defmodule Struct.FromTermTest do
         :basic_type => "hello",
         "basicTypeCustomKey" => "custom hello",
         :list_type => ["a", "b", "c"],
+        :defaults_to_42 => 999,
         :bar => %{basic_type: "bar value"},
         :one_of_type => 42
       }
@@ -99,6 +104,7 @@ defmodule Struct.FromTermTest do
         list_type: ["a", "b", "c"],
         nested_type: nil,
         nested_type_custom_key: nil,
+        defaults_to_42: 999,
         bar: %Bar{basic_type: "bar value"},
         one_of_type: 42
       }
@@ -254,6 +260,7 @@ defmodule Struct.FromTermTest do
         list_type: [],
         nested_type: [],
         nested_type_custom_key: [],
+        defaults_to_42: 42,
         bar: %Bar{basic_type: "bar value"},
         one_of_type: 42
       }
@@ -280,6 +287,7 @@ defmodule Struct.FromTermTest do
         list_type: ["a", "b", "c"],
         nested_type: ["x", "2", "z"],
         nested_type_custom_key: ["1", "2", "3"],
+        defaults_to_42: 42,
         bar: %Bar{basic_type: "bar value"},
         one_of_type: 42
       }
@@ -306,6 +314,7 @@ defmodule Struct.FromTermTest do
         list_type: ["a", "b", "c"],
         nested_type: ["x", "y", "z"],
         nested_type_custom_key: ["1", "2", "3"],
+        defaults_to_42: 42,
         bar: %Bar{basic_type: "bar value"},
         one_of_type: 42
       }
