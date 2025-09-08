@@ -1,4 +1,4 @@
-defmodule Struct.DeriveModuleBehaviour do
+defmodule Struct.Derive do
   @moduledoc """
   Defines the callback that must be implemented by a module to be able to use it as a struct derive.
   """
@@ -7,20 +7,32 @@ defmodule Struct.DeriveModuleBehaviour do
   This function will be called exactly once for each struct that derives your behaviour.
   It is expected to return the AST of the code your behaviour generates.
 
-  Args:
-  - field: A list of the struct field
-    Example:
-    ```elixir
-    [
+  Example:
+  ```elixir
+  # For the following struct definition
+  defmodule MyStruct do
+    use Struct, {
+      [Struct.FromMap],
       field1: :integer,
       field2: SomeOtherModule,
       field3: [
-        type: :integer, # Type MUST always be present in the list
-        some_custom_option_for_a_behaviour: 42 # Can be any type
+        :integer,
+        {Struct.FromMap, default: 42}
       ]
+    }
+  end
+
+  # Arguments passed to the derive function will be:
+  fields = [
+    field1: :integer,
+    field2: SomeOtherModule,
+    field3: [
+      :integer,
+      {Struct.FromMap, default: 42}
     ]
-    ```
-  - module: The module that is currently defining a struct
+  ]
+  module = MyStruct
+  ```
 
   Must return either an AST or a list of ASTs
   (The list may also contain `nil` and `:nop`, those value will be ignored)
@@ -31,12 +43,13 @@ defmodule Struct.DeriveModuleBehaviour do
                   Struct.variable_name(),
                   Struct.field_type()
                   | [
-                      # type MUST be included in the list
-                      {:type, Struct.field_type()}
-                      | {atom(), any()}
+                      # First elem is Struct.field_type(), the rest are options {module(), any()}
+                      Struct.field_type()
+                      | {module(), any()}
                     ]
                 }
               ],
-              caller_module :: module()
+              module(),
+              Macro.Env.t()
             ) :: Macro.t() | [Macro.t() | nil | :nop]
 end

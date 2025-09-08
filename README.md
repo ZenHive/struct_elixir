@@ -28,11 +28,11 @@ end
 # Using the derive feature to implement behaviour automatically
 defmodule Foo do
   use Struct, {
-    [Struct.FromTerm], # Will implement the behaviour `Struct.FromTerm` automatically
+    [Struct.FromMap], # Will implement the behaviour `Struct.FromMap` automatically
     field: :integer,
   }
 
-  # from_term/1 is generated automatically
+  # from_map/1 is generated automatically
 end
 ```
 
@@ -78,19 +78,23 @@ end
 - `:string`
 - `:boolean`
 - `:float`
+- `:atom`
+- `{:atom, value}`
 - `:any`
+- `{:tuple, list_of_types}`
 - `{:list, AnySupportedType}`
 - `{:option, AnySupportedType}`
-- `{:elixir_type, any_type()}` # FromTerm does not support this
+- `{:one_of, [type]}`
+- `{:elixir_type, elixir_type()}` # FromMap does not support this
 - `Module`
 
 # Included Behaviours:
 
-- `Struct.FromTerm`
+- `Struct.FromMap`
 
 # How to implement your own behaviours:
 
-See `Struct.DeriveModuleBehaviour`
+See `Struct.Derive`
 
 # Installation
 
